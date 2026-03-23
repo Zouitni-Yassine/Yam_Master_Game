@@ -171,75 +171,81 @@ const CasinoTable = (() => {
     }
 
     function createWhiskeyGlasses() {
-        // Player side glass (bottom-left of table)
+        // Player side — right corner (opposite side from chip stack)
         const g1 = buildWhiskeyGlass();
-        g1.position.set(-TABLE_WIDTH/2 + 1.2, 0.3, TABLE_DEPTH/2 - 0.6);
-        g1.scale.set(1.4, 1.4, 1.4);
+        g1.position.set(TABLE_WIDTH/2 - 1.4, 0.0, TABLE_DEPTH/2 - 1.2);
         tableGroup.add(g1);
 
-        // Opponent side glass (top-right of table)
+        // Opponent side — left corner (opposite side from opponent chip stack)
         const g2 = buildWhiskeyGlass();
-        g2.position.set(TABLE_WIDTH/2 - 1.2, 0.3, -TABLE_DEPTH/2 + 0.6);
-        g2.scale.set(1.4, 1.4, 1.4);
+        g2.position.set(-TABLE_WIDTH/2 + 1.4, 0.0, -TABLE_DEPTH/2 + 1.2);
         tableGroup.add(g2);
     }
 
     function buildWhiskeyGlass() {
         const g = new THREE.Group();
 
-        // Thick glass body (tumbler style)
+        // Large tumbler glass — outer shell, open top
         const glassMat = new THREE.MeshPhysicalMaterial({
-            color: 0xccddff, transparent: true, opacity: 0.18,
+            color: 0xd0e8ff, transparent: true, opacity: 0.22,
             roughness: 0.0, metalness: 0.05, side: THREE.DoubleSide,
-            clearcoat: 1.0, clearcoatRoughness: 0.0,
-            reflectivity: 0.9
+            clearcoat: 1.0, clearcoatRoughness: 0.0, reflectivity: 0.95
         });
-        // Outer shell
-        g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.16, 0.4, 24, 1, true), glassMat));
+        g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.28, 0.72, 32, 1, true), glassMat));
 
-        // Thick bottom
+        // Thick heavy bottom (rock glass style)
         const botMat = new THREE.MeshPhysicalMaterial({
-            color: 0xccddff, transparent: true, opacity: 0.35,
+            color: 0xc8e0ff, transparent: true, opacity: 0.55,
             roughness: 0.0, clearcoat: 1.0, reflectivity: 0.9
         });
-        const bot = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.06, 24), botMat);
-        bot.position.y = -0.17;
+        const bot = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.14, 32), botMat);
+        bot.position.y = -0.29;
         g.add(bot);
 
-        // Whiskey liquid
+        // Whiskey liquid (generous fill)
         const liqMat = new THREE.MeshStandardMaterial({
-            color: 0xc07010, transparent: true, opacity: 0.82, roughness: 0.02, metalness: 0.0
+            color: 0xb86010, transparent: true, opacity: 0.88, roughness: 0.01
         });
-        const liq = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.145, 0.18, 24), liqMat);
-        liq.position.y = -0.06;
+        const liq = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.27, 0.32, 32), liqMat);
+        liq.position.y = -0.08;
         g.add(liq);
 
-        // Liquid surface (shiny top)
+        // Liquid surface — shiny amber
         const surfMat = new THREE.MeshStandardMaterial({
-            color: 0xd08020, transparent: true, opacity: 0.7, roughness: 0.0, metalness: 0.2
+            color: 0xd07818, transparent: true, opacity: 0.75, roughness: 0.0, metalness: 0.15
         });
-        const surf = new THREE.Mesh(new THREE.CircleGeometry(0.155, 24), surfMat);
+        const surf = new THREE.Mesh(new THREE.CircleGeometry(0.33, 32), surfMat);
         surf.rotation.x = -Math.PI / 2;
-        surf.position.y = 0.03;
+        surf.position.y = 0.08;
         g.add(surf);
 
-        // Ice cubes
+        // Ice cubes (3 large pieces)
         const iceMat = new THREE.MeshPhysicalMaterial({
-            color: 0xddeeff, transparent: true, opacity: 0.55,
-            roughness: 0.0, metalness: 0.02, clearcoat: 1.0
+            color: 0xe8f4ff, transparent: true, opacity: 0.5,
+            roughness: 0.02, clearcoat: 1.0, reflectivity: 0.95
         });
         for (let i = 0; i < 3; i++) {
-            const size = 0.05 + Math.random() * 0.03;
-            const ice = new THREE.Mesh(new THREE.BoxGeometry(size, size, size), iceMat);
-            const angle = (i / 3) * Math.PI * 2 + Math.random() * 0.5;
-            ice.position.set(Math.cos(angle) * 0.06, 0.02 + i * 0.02, Math.sin(angle) * 0.06);
-            ice.rotation.set(Math.random() * 0.5, Math.random() * Math.PI, Math.random() * 0.5);
+            const sz = 0.08 + Math.random() * 0.05;
+            const ice = new THREE.Mesh(new THREE.BoxGeometry(sz, sz * 0.7, sz), iceMat);
+            const angle = (i / 3) * Math.PI * 2 + Math.random() * 0.6;
+            ice.position.set(Math.cos(angle) * 0.13, 0.04 + i * 0.025, Math.sin(angle) * 0.13);
+            ice.rotation.set(Math.random() * 0.4, Math.random() * Math.PI, Math.random() * 0.4);
             g.add(ice);
         }
+
+        // Glass rim highlight ring
+        const rimMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff, transparent: true, opacity: 0.15, roughness: 0.0
+        });
+        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.38, 0.012, 8, 32), rimMat);
+        rim.rotation.x = Math.PI / 2;
+        rim.position.y = 0.36;
+        g.add(rim);
 
         g.castShadow = true;
         return g;
     }
+
 
     function createCornerDecorations() {
         const goldMat = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, roughness: 0.2, metalness: 0.9 });

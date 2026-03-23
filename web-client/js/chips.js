@@ -1,20 +1,20 @@
 /* ============================================
    POKER CHIPS - RED for player, BLACK for opponent
-   Both players see each other's chip placements
+   12 chips each, stacked on the table
    ============================================ */
 
 const ChipSystem = (() => {
-    const CHIP_R  = 0.22;
-    const CHIP_H  = 0.055;
-    const STRIPES = 8;
+    const CHIP_R    = 0.22;
+    const CHIP_H    = 0.055;
+    const STRIPES   = 8;
     const CHIP_COUNT = 12;
 
-    const PLAYER_POS   = { x: 6.2, z:  3.2 };
-    const OPPONENT_POS = { x: 6.2, z: -3.2 };
+    // Stack positions (right side of grid, on table surface)
+    const PLAYER_POS   = { x: 5.8, z:  3.0 };
+    const OPPONENT_POS = { x: 5.8, z: -3.0 };
 
-    // All RED for player
-    const PLAYER_COLOR = 0xcc1111;
-    // All BLACK for opponent
+    // All RED for player, all BLACK for opponent
+    const PLAYER_COLOR   = 0xcc1111;
     const OPPONENT_COLOR = 0x111111;
 
     let scene;
@@ -45,43 +45,44 @@ const ChipSystem = (() => {
     function makeChip(color) {
         const group = new THREE.Group();
 
+        // Main body
         const bodyMat = new THREE.MeshStandardMaterial({
-            color, roughness: 0.3, metalness: 0.25
+            color, roughness: 0.28, metalness: 0.22
         });
         group.add(new THREE.Mesh(
-            new THREE.CylinderGeometry(CHIP_R, CHIP_R, CHIP_H, 32), bodyMat
+            new THREE.CylinderGeometry(CHIP_R, CHIP_R, CHIP_H, 36), bodyMat
         ));
 
-        // Edge stripes
-        const stripeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 });
+        // Edge stripes (white sections around rim — classic casino chip look)
+        const stripeMat = new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.45 });
         for (let i = 0; i < STRIPES; i++) {
             const angle = (i / STRIPES) * Math.PI * 2;
             const stripe = new THREE.Mesh(
-                new THREE.BoxGeometry(0.03, CHIP_H + 0.001, 0.07), stripeMat
+                new THREE.BoxGeometry(0.032, CHIP_H + 0.002, 0.075), stripeMat
             );
-            stripe.position.x = Math.cos(angle) * (CHIP_R - 0.012);
-            stripe.position.z = Math.sin(angle) * (CHIP_R - 0.012);
+            stripe.position.x = Math.cos(angle) * (CHIP_R - 0.01);
+            stripe.position.z = Math.sin(angle) * (CHIP_R - 0.01);
             stripe.rotation.y = -angle;
             group.add(stripe);
         }
 
-        // Top ring
+        // Inset ring on top face
         const ringMat = new THREE.MeshStandardMaterial({
-            color: 0xffffff, roughness: 0.5, side: THREE.DoubleSide
+            color: 0xffffff, roughness: 0.5, side: THREE.DoubleSide, transparent: true, opacity: 0.7
         });
         const ring = new THREE.Mesh(
-            new THREE.RingGeometry(CHIP_R * 0.45, CHIP_R * 0.52, 32), ringMat
+            new THREE.RingGeometry(CHIP_R * 0.55, CHIP_R * 0.62, 36), ringMat
         );
         ring.rotation.x = -Math.PI / 2;
         ring.position.y = CHIP_H / 2 + 0.001;
         group.add(ring);
 
-        // Center gold emblem
+        // Center gold disc
         const centerMat = new THREE.MeshStandardMaterial({
-            color: 0xd4a44c, roughness: 0.3, metalness: 0.7
+            color: 0xd4a44c, roughness: 0.25, metalness: 0.75
         });
         const center = new THREE.Mesh(
-            new THREE.CircleGeometry(CHIP_R * 0.2, 16), centerMat
+            new THREE.CircleGeometry(CHIP_R * 0.28, 20), centerMat
         );
         center.rotation.x = -Math.PI / 2;
         center.position.y = CHIP_H / 2 + 0.002;
@@ -101,13 +102,13 @@ const ChipSystem = (() => {
 
         placedChips.push({ chip, row, col, isPlayer });
 
-        gsap.to(chip.position, { y: 3.5, duration: 0.3, ease: 'power2.out' });
-        gsap.to(chip.position, { x: target.x, z: target.z, duration: 0.55, ease: 'power2.inOut' });
+        gsap.to(chip.position, { y: 3.5, duration: 0.28, ease: 'power2.out' });
+        gsap.to(chip.position, { x: target.x, z: target.z, duration: 0.52, delay: 0.05, ease: 'power2.inOut' });
         gsap.to(chip.position, {
             y: target.y + stackHeight * CHIP_H,
-            duration: 0.35, delay: 0.3, ease: 'bounce.out'
+            duration: 0.38, delay: 0.28, ease: 'bounce.out'
         });
-        gsap.to(chip.rotation, { y: `+=${Math.PI * 6}`, duration: 0.85, ease: 'power2.out' });
+        gsap.to(chip.rotation, { y: `+=${Math.PI * 6}`, duration: 0.82, ease: 'power2.out' });
     }
 
     function getPlayerChipCount()   { return playerChips.length; }

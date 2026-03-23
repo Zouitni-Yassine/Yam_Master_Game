@@ -8,9 +8,9 @@ const DiceCup = (() => {
     let playerCup   = null;
     let opponentCup = null;
 
-    // Rest positions (one per side)
+    // Rest positions — player cup on LEFT, opponent cup on RIGHT
     const PLAYER_REST   = { x: -5.8, y: 0.55, z:  3.8 };
-    const OPPONENT_REST = { x: -5.8, y: 0.55, z: -3.8 };
+    const OPPONENT_REST = { x:  5.8, y: 0.55, z: -3.8 };
 
     function init(sceneRef) {
         scene = sceneRef;
@@ -70,11 +70,20 @@ const DiceCup = (() => {
             group.add(groove);
         }
 
-        // Inside dark tint (visible from top)
+        // Inside dark walls (visible from top)
         const insideMat = new THREE.MeshStandardMaterial({
-            color: 0x1a0a00, roughness: 0.9, side: THREE.BackSide
+            color: 0x0a0503, roughness: 0.95, side: THREE.BackSide
         });
         group.add(new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.24, 0.66, 24, 1, true), insideMat));
+
+        // Inner bottom — closes the cup so it looks solid from above
+        const innerFloor = new THREE.Mesh(
+            new THREE.CircleGeometry(0.24, 24),
+            new THREE.MeshStandardMaterial({ color: 0x050201, roughness: 0.98 })
+        );
+        innerFloor.rotation.x = -Math.PI / 2;
+        innerFloor.position.y = -0.32;
+        group.add(innerFloor);
 
         group.castShadow = true;
         return group;

@@ -31,7 +31,6 @@ const CasinoScene = (() => {
         setupBackgroundTables();
         setupRouletteTable();
         setupSlotMachines();
-        setupChipStacks();
 
         window.addEventListener('resize', onResize);
         return { scene, camera, renderer };
@@ -425,36 +424,6 @@ const CasinoScene = (() => {
         g.add(knob);
 
         return g;
-    }
-
-    /* =============================================
-       EXTRA CHIP STACKS (background decoration)
-       ============================================= */
-    function setupChipStacks() {
-        // Large decorative chip stacks visible in background right
-        const stackPositions = [
-            { x: 13, z: -5, colors: [0xcc1111, 0xcc1111, 0xcc1111, 0xcc1111, 0xcc1111] },
-            { x: 13.6, z: -4.5, colors: [0x111111, 0x111111, 0x111111, 0x111111] },
-            { x: 14.2, z: -5.3, colors: [0x2244cc, 0x2244cc, 0x2244cc] },
-            { x: 12.4, z: -4.8, colors: [0x22aa44, 0x22aa44, 0x22aa44, 0x22aa44, 0x22aa44, 0x22aa44] },
-            { x: 13.2, z: -4, colors: [0xd4a44c, 0xd4a44c, 0xd4a44c, 0xd4a44c] },
-        ];
-
-        stackPositions.forEach(sp => {
-            sp.colors.forEach((color, i) => {
-                const chip = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.2, 0.2, 0.05, 16),
-                    new THREE.MeshStandardMaterial({ color, roughness: 0.35, metalness: 0.2 })
-                );
-                chip.position.set(
-                    sp.x + (Math.random() - 0.5) * 0.03,
-                    -0.6 + i * 0.05,
-                    sp.z + (Math.random() - 0.5) * 0.03
-                );
-                chip.rotation.y = Math.random() * Math.PI;
-                scene.add(chip);
-            });
-        });
     }
 
     /* =============================================
