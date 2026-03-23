@@ -1,8 +1,18 @@
 // websocket-server/index.js
 
-const app = require('express')();
+const express = require('express');
+const path = require('path');
+const app = express();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
+
+// Serve the web client static files
+app.use(express.static(path.join(__dirname, '..', 'web-client')));
+const io = require('socket.io')(http, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
 var uniqid = require('uniqid');
 const GameService = require('./services/game.service');
 
@@ -241,7 +251,7 @@ io.on('connection', socket => {
 // -------- SERVER METHODS -----------
 // -----------------------------------
 
-app.get('/', (req, res) => res.sendFile('index.html'));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'web-client', 'index.html')));
 
 http.listen(3000, function () {
   console.log('listening on *:3000');

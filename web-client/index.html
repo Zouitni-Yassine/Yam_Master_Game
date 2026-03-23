@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yam's Casino</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cinzel:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading screen -->
+    <div id="loading-screen">
+        <div class="loader-content">
+            <h1 class="loader-title">YAM'S CASINO</h1>
+            <div class="loader-bar"><div class="loader-fill"></div></div>
+            <p class="loader-text">Préparation de la table...</p>
+        </div>
+    </div>
+
+    <!-- Main 3D canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+        <!-- Top bar: timer + round info -->
+        <div id="top-bar">
+            <div id="opponent-info" class="player-info-bar">
+                <span class="player-label">ADVERSAIRE</span>
+                <div id="opponent-timer-ring" class="timer-ring">
+                    <svg viewBox="0 0 40 40">
+                        <circle class="timer-bg" cx="20" cy="20" r="18"/>
+                        <circle id="opponent-timer-circle" class="timer-fg" cx="20" cy="20" r="18"/>
+                    </svg>
+                    <span id="opponent-timer-text" class="timer-text">--</span>
+                </div>
+                <span id="opponent-score" class="score-display">0</span>
+            </div>
+
+            <div id="round-info">
+                <div id="turn-indicator">EN ATTENTE</div>
+                <div id="roll-counter">LANCE 0/3</div>
+            </div>
+
+            <div id="player-info" class="player-info-bar">
+                <span id="player-score" class="score-display">0</span>
+                <div id="player-timer-ring" class="timer-ring">
+                    <svg viewBox="0 0 40 40">
+                        <circle class="timer-bg" cx="20" cy="20" r="18"/>
+                        <circle id="player-timer-circle" class="timer-fg" cx="20" cy="20" r="18"/>
+                    </svg>
+                    <span id="player-timer-text" class="timer-text">--</span>
+                </div>
+                <span class="player-label">VOUS</span>
+            </div>
+        </div>
+
+        <!-- Combination choices bar -->
+        <div id="choices-bar" class="hidden">
+            <div id="choices-container"></div>
+        </div>
+
+        <!-- Left score panel -->
+        <div id="left-panel" class="score-panel">
+            <div class="panel-header">VOUS</div>
+            <div id="player-grid" class="score-grid"></div>
+        </div>
+
+        <!-- Right score panel -->
+        <div id="right-panel" class="score-panel">
+            <div class="panel-header">ADVERSAIRE</div>
+            <div id="opponent-grid" class="score-grid"></div>
+        </div>
+
+        <!-- Bottom action buttons -->
+        <div id="action-bar">
+            <button id="btn-roll" class="action-btn" disabled>
+                <span class="btn-icon">🎲</span>
+                <span class="btn-text">LANCER</span>
+            </button>
+            <button id="btn-validate" class="action-btn validate-btn hidden" disabled>
+                <span class="btn-icon">✓</span>
+                <span class="btn-text">VALIDER</span>
+            </button>
+        </div>
+
+        <!-- Queue/Connection overlay -->
+        <div id="queue-overlay">
+            <div class="queue-content">
+                <h2>YAM'S CASINO</h2>
+                <p id="connection-status">Connexion au serveur...</p>
+                <button id="btn-join-queue" class="queue-btn" disabled>REJOINDRE LA PARTIE</button>
+                <button id="btn-leave-queue" class="queue-btn danger hidden">QUITTER LA FILE</button>
+                <p id="queue-status" class="hidden">En attente d'un adversaire...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <script src="js/scene.js"></script>
+    <script src="js/table.js"></script>
+    <script src="js/dice.js"></script>
+    <script src="js/chips.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/socket-client.js"></script>
+    <script src="js/game-state.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
