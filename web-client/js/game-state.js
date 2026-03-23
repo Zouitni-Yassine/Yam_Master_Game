@@ -19,7 +19,9 @@ const GameState = (() => {
         rollsCounter: 0,
         rollsMaximum: 3,
         isRolling: false,
-        pendingServerDices: null   // server dice data received during animation
+        pendingServerDices: null,    // server dice data received during cup shake
+        scatterCallback: null,       // called once cup tips + server data both ready
+        pendingPlayerPlacement: null // {row, col} of chip the player just placed
     };
 
     function init() {
@@ -89,14 +91,21 @@ const GameState = (() => {
             state.rollsCounter = data.rollsCounter;
             state.rollsMaximum = data.rollsMaximum;
 
-            UIManager.updateRollCounter(data.rollsCounter, data.rollsMaximum);
+            UIManager.updateRollCounter(Math.min(data.rollsCounter, data.rollsMaximum), data.rollsMaximum);
 
             if (data.displayPlayerDeck) {
                 DiceSystem.showDice(true);
 
                 if (state.isRolling) {
-                    // Animation in progress — store real values, apply when animation ends
-                    state.pendingServerDices = data.dices;
+                    if (state.scatterCallback) {
+                        // Cup already tipped and is waiting for server data → scatter now
+                        const cb = state.scatterCallback;
+                        state.scatterCallback = null;
+                        cb(data.dices);
+                    } else {
+                        // Cup still shaking → store dices for when it tips
+                        state.pendingServerDices = data.dices;
+                    }
                 } else {
                     DiceSystem.updateDiceFromServer(data.dices);
                 }
@@ -130,6 +139,24 @@ const GameState = (() => {
         });
 
         SocketClient.onGridViewState((data) => {
+            // Detect newly claimed cells and fly the right chip color
+            if (data.grid && state.currentGrid && state.currentGrid.grid) {
+                data.grid.forEach((row, ri) => {
+                    row.forEach((cell, ci) => {
+                        const prev = state.currentGrid.grid[ri] && state.currentGrid.grid[ri][ci];
+                        if (cell.owner && (!prev || !prev.owner)) {
+                            // Match by pending placement (reliable, no ID format issues)
+                            const isPending = state.pendingPlayerPlacement &&
+                                state.pendingPlayerPlacement.row === ri &&
+                                state.pendingPlayerPlacement.col === ci;
+                            if (isPending) state.pendingPlayerPlacement = null;
+                            ChipSystem.flyChipToCell(ri, ci, isPending);
+                            SoundManager.play('chip');
+                        }
+                    });
+                });
+            }
+
             state.currentGrid = data;
             state.canSelectCells = data.canSelectCells;
 
@@ -155,31 +182,34 @@ const GameState = (() => {
             if (state.isMyTurn && !state.isRolling) {
                 state.isRolling = true;
                 state.pendingServerDices = null;
+                state.scatterCallback = null;
                 UIManager.setRollButtonState(false, state.rollsCounter);
 
                 SocketClient.rollDice();
-
-                // Temp random values just to drive the animation visually
-                const diceStates = DiceSystem.getDiceStates();
-                const tempValues = diceStates.map(ds =>
-                    (!ds.locked || ds.value === '') ? Math.ceil(Math.random() * 6) : ds.value
-                );
-
-                Animations.rollDice(
-                    DiceSystem.getDiceMeshes(),
-                    diceStates,
-                    tempValues,
-                    () => {
-                        state.isRolling = false;
-                        // Apply real server values received during animation
-                        if (state.pendingServerDices) {
-                            DiceSystem.updateDiceFromServer(state.pendingServerDices);
-                            state.pendingServerDices = null;
-                        }
-                    }
-                );
-
                 SoundManager.play('roll');
+
+                const diceMeshes = DiceSystem.getDiceMeshes();
+                const diceStates = DiceSystem.getDiceStates();
+
+                const doScatter = (serverDices) => {
+                    const values = serverDices.map(sd => sd.value);
+                    Animations.rollDice(diceMeshes, diceStates, values, () => {
+                        state.isRolling = false;
+                        DiceSystem.updateDiceFromServer(serverDices);
+                    });
+                };
+
+                // Cup gathers & shakes, then fires dice scatter with real server values
+                DiceCup.animateRoll(true, diceMeshes, diceStates, () => {
+                    if (state.pendingServerDices) {
+                        // Server already responded during cup shake → scatter immediately
+                        doScatter(state.pendingServerDices);
+                        state.pendingServerDices = null;
+                    } else {
+                        // Server not yet responded → store callback, fire when data arrives
+                        state.scatterCallback = doScatter;
+                    }
+                });
             }
         });
 
@@ -187,13 +217,9 @@ const GameState = (() => {
         document.getElementById('btn-validate').addEventListener('click', () => {
             if (state.selectedGridCell && state.selectedChoice) {
                 const { cellId, rowIndex, cellIndex } = state.selectedGridCell;
+                state.pendingPlayerPlacement = { row: rowIndex, col: cellIndex };
                 SocketClient.selectGridCell(cellId, rowIndex, cellIndex);
                 UIManager.showValidateButton(false);
-
-                // Animate chip
-                const isPlayer = true;
-                ChipSystem.flyChipToCell(rowIndex, cellIndex, isPlayer);
-                SoundManager.play('chip');
 
                 state.selectedChoice = null;
                 state.selectedGridCell = null;

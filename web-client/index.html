@@ -22,27 +22,15 @@
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
-        <!-- Top bar: timer + round info -->
+        <!-- Top bar -->
         <div id="top-bar">
-            <div id="opponent-info" class="player-info-bar">
-                <span class="player-label">ADVERSAIRE</span>
-                <div id="opponent-timer-ring" class="timer-ring">
-                    <svg viewBox="0 0 40 40">
-                        <circle class="timer-bg" cx="20" cy="20" r="18"/>
-                        <circle id="opponent-timer-circle" class="timer-fg" cx="20" cy="20" r="18"/>
-                    </svg>
-                    <span id="opponent-timer-text" class="timer-text">--</span>
+            <!-- Player score badge (left) -->
+            <div class="score-badge player-badge">
+                <div class="badge-icon">♠</div>
+                <div class="badge-info">
+                    <span class="badge-label">VOUS</span>
+                    <span id="player-score" class="badge-score">0</span>
                 </div>
-                <span id="opponent-score" class="score-display">0</span>
-            </div>
-
-            <div id="round-info">
-                <div id="turn-indicator">EN ATTENTE</div>
-                <div id="roll-counter">LANCE 0/3</div>
-            </div>
-
-            <div id="player-info" class="player-info-bar">
-                <span id="player-score" class="score-display">0</span>
                 <div id="player-timer-ring" class="timer-ring">
                     <svg viewBox="0 0 40 40">
                         <circle class="timer-bg" cx="20" cy="20" r="18"/>
@@ -50,7 +38,28 @@
                     </svg>
                     <span id="player-timer-text" class="timer-text">--</span>
                 </div>
-                <span class="player-label">VOUS</span>
+            </div>
+
+            <!-- Center turn indicator -->
+            <div id="round-info">
+                <div id="turn-indicator">EN ATTENTE</div>
+                <div id="roll-counter">LANCE 0/3</div>
+            </div>
+
+            <!-- Opponent score badge (right) -->
+            <div class="score-badge opponent-badge">
+                <div id="opponent-timer-ring" class="timer-ring">
+                    <svg viewBox="0 0 40 40">
+                        <circle class="timer-bg" cx="20" cy="20" r="18"/>
+                        <circle id="opponent-timer-circle" class="timer-fg" cx="20" cy="20" r="18"/>
+                    </svg>
+                    <span id="opponent-timer-text" class="timer-text">--</span>
+                </div>
+                <div class="badge-info">
+                    <span class="badge-label">ADVERSAIRE</span>
+                    <span id="opponent-score" class="badge-score">0</span>
+                </div>
+                <div class="badge-icon">♦</div>
             </div>
         </div>
 
@@ -104,6 +113,7 @@
     <script src="js/table.js"></script>
     <script src="js/dice.js"></script>
     <script src="js/chips.js"></script>
+    <script src="js/dice-cup.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/animations.js"></script>
     <script src="js/socket-client.js"></script>

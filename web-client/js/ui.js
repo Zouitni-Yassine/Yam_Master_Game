@@ -6,7 +6,7 @@
 const UIManager = (() => {
     const TURN_DURATION = 30;
 
-    // Grid labels for score panels
+    // Score panel labels — matches the grid categories
     const SCORE_LABELS = [
         { id: 'brelan1', label: 'As' },
         { id: 'brelan2', label: 'Deux' },
@@ -64,15 +64,10 @@ const UIManager = (() => {
 
         if (time > 0) {
             text.textContent = time;
-            const circumference = 2 * Math.PI * 18; // r=18
+            const circumference = 2 * Math.PI * 18;
             const offset = circumference * (1 - time / TURN_DURATION);
             circle.style.strokeDashoffset = offset;
-
-            if (time <= 5) {
-                circle.classList.add('urgent');
-            } else {
-                circle.classList.remove('urgent');
-            }
+            circle.classList.toggle('urgent', time <= 5);
         } else {
             text.textContent = '--';
             circle.style.strokeDashoffset = 0;
@@ -82,8 +77,7 @@ const UIManager = (() => {
 
     // ---- Roll Counter ----
     function updateRollCounter(current, max) {
-        const el = document.getElementById('roll-counter');
-        el.textContent = `LANCE ${current}/${max}`;
+        document.getElementById('roll-counter').textContent = `LANCE ${current}/${max}`;
     }
 
     // ---- Turn Indicator ----
@@ -95,12 +89,7 @@ const UIManager = (() => {
     function setRollButtonState(enabled, rollsCounter) {
         const btn = document.getElementById('btn-roll');
         btn.disabled = !enabled;
-
-        if (rollsCounter === 0) {
-            btn.querySelector('.btn-text').textContent = 'LANCER';
-        } else {
-            btn.querySelector('.btn-text').textContent = 'RELANCER';
-        }
+        btn.querySelector('.btn-text').textContent = rollsCounter === 0 ? 'LANCER' : 'RELANCER';
 
         if (enabled) {
             Animations.pulseButton(btn);
@@ -112,13 +101,8 @@ const UIManager = (() => {
     // ---- Validate Button ----
     function showValidateButton(show) {
         const btn = document.getElementById('btn-validate');
-        if (show) {
-            btn.classList.remove('hidden');
-            btn.disabled = false;
-        } else {
-            btn.classList.add('hidden');
-            btn.disabled = true;
-        }
+        btn.classList.toggle('hidden', !show);
+        btn.disabled = !show;
     }
 
     // ---- Choices ----
@@ -135,7 +119,6 @@ const UIManager = (() => {
         availableChoices.forEach(choice => {
             const card = document.createElement('div');
             card.className = 'choice-card';
-
             if (!canMakeChoice) card.classList.add('disabled');
             if (choice.id === selectedChoiceId) card.classList.add('selected');
 
@@ -161,7 +144,7 @@ const UIManager = (() => {
             'brelan1': '3 pts', 'brelan2': '6 pts', 'brelan3': '9 pts',
             'brelan4': '12 pts', 'brelan5': '15 pts', 'brelan6': '18 pts',
             'full': '25 pts', 'carre': '30 pts', 'yam': '50 pts',
-            'suite': '40 pts', 'moinshuit': '≤8 pts', 'sec': 'Sec',
+            'suite': '40 pts', 'moinshuit': '≤8', 'sec': 'Sec',
             'defi': 'Défi'
         };
         return pointsMap[choiceId] || '';
@@ -170,17 +153,14 @@ const UIManager = (() => {
     // ---- Grid ----
     function updateGrid(grid, canSelectCells, idPlayer) {
         if (!grid) return;
-
         CasinoTable.resetCellHighlights();
 
         grid.forEach((row, rowIdx) => {
             row.forEach((cell, colIdx) => {
-                // Update table 3D cells
                 if (cell.owner) {
                     const isPlayer = cell.owner === idPlayer;
                     CasinoTable.setCellOwner(rowIdx, colIdx, isPlayer ? 'player:1' : 'player:2');
                 }
-
                 if (cell.canBeChecked && canSelectCells) {
                     CasinoTable.highlightCell(rowIdx, colIdx, true);
                 }
@@ -188,17 +168,9 @@ const UIManager = (() => {
         });
     }
 
-    function onChoiceSelected(callback) {
-        onChoiceSelectedCallback = callback;
-    }
-
-    function onGridCellSelected(callback) {
-        onGridCellSelectedCallback = callback;
-    }
-
-    function getOnGridCellSelectedCallback() {
-        return onGridCellSelectedCallback;
-    }
+    function onChoiceSelected(callback) { onChoiceSelectedCallback = callback; }
+    function onGridCellSelected(callback) { onGridCellSelectedCallback = callback; }
+    function getOnGridCellSelectedCallback() { return onGridCellSelectedCallback; }
 
     // ---- Scores ----
     function updateScores(playerScore, opponentScore) {
@@ -208,12 +180,7 @@ const UIManager = (() => {
 
     // ---- Queue Overlay ----
     function showQueueOverlay(show) {
-        const overlay = document.getElementById('queue-overlay');
-        if (show) {
-            overlay.classList.remove('hidden');
-        } else {
-            overlay.classList.add('hidden');
-        }
+        document.getElementById('queue-overlay').classList.toggle('hidden', !show);
     }
 
     function setConnectionStatus(text) {

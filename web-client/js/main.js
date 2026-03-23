@@ -109,6 +109,9 @@ const SoundManager = (() => {
     setProgress(65, 'Placement des jetons...');
     ChipSystem.init(scene);
 
+    // Step 4b: Init dice cups
+    DiceCup.init(scene);
+
     // Step 5: Init UI
     setProgress(80, 'Configuration de l\'interface...');
     UIManager.init();

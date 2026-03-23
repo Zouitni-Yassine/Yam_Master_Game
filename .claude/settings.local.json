@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -c index.js)"
+      "Bash(node -c index.js)",
+      "Bash(for f in js/scene.js js/table.js js/chips.js js/dice-cup.js js/animations.js js/game-state.js js/main.js)",
+      "Bash(do node -c \"$f\")",
+      "Bash(echo \"OK: $f\")",
+      "Bash(echo \"FAIL: $f\")",
+      "Bash(done)"
     ]
   }
 }
