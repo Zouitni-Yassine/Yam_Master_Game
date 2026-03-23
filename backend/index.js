@@ -28,6 +28,20 @@ const updateClientsViewDecks = (game) => {
   }, 200);
 };
 
+const updateClientsViewChoices = (game) => {
+  setTimeout(() => {
+    game.player1Socket.emit('game.choices.view-state', GameService.send.forPlayer.choicesViewState('player:1', game.gameState));
+    game.player2Socket.emit('game.choices.view-state', GameService.send.forPlayer.choicesViewState('player:2', game.gameState));
+  }, 200);
+};
+
+const updateClientsViewGrid = (game) => {
+  setTimeout(() => {
+    game.player1Socket.emit('game.grid.view-state', GameService.send.forPlayer.gridViewState('player:1', game.gameState));
+    game.player2Socket.emit('game.grid.view-state', GameService.send.forPlayer.gridViewState('player:2', game.gameState));
+  }, 200);
+};
+
 // ---------------------------------
 // -------- GAME METHODS -----------
 // ---------------------------------
@@ -63,6 +77,7 @@ const createGame = (player1Socket, player2Socket) => {
 
   updateClientsViewTimers(games[gameIndex]);
   updateClientsViewDecks(games[gameIndex]);
+  updateClientsViewGrid(games[gameIndex]);
 
   // On execute une fonction toutes les secondes (1000 ms)
   const gameInterval = setInterval(() => {
@@ -82,8 +97,16 @@ const createGame = (player1Socket, player2Socket) => {
       // Reset du deck
       games[gameIndex].gameState.deck = GameService.init.deck();
 
+      // Reset des choix
+      games[gameIndex].gameState.choices = GameService.init.choices();
+
+      // Reset de la surbrillance de la grille
+      games[gameIndex].gameState.grid = GameService.grid.resetcanBeCheckedCells(games[gameIndex].gameState.grid);
+
       updateClientsViewTimers(games[gameIndex]);
       updateClientsViewDecks(games[gameIndex]);
+      updateClientsViewChoices(games[gameIndex]);
+      updateClientsViewGrid(games[gameIndex]);
     }
 
   }, 1000);
@@ -129,7 +152,14 @@ io.on('connection', socket => {
       games[gameIndex].gameState.deck.dices = GameService.dices.roll(games[gameIndex].gameState.deck.dices);
       games[gameIndex].gameState.deck.rollsCounter++;
 
+      // Combinations management
+      const dices = games[gameIndex].gameState.deck.dices;
+      const isDefi = false;
+      const isSec = games[gameIndex].gameState.deck.rollsCounter === 2;
+      games[gameIndex].gameState.choices.availableChoices = GameService.choices.findCombinations(dices, isDefi, isSec);
+
       updateClientsViewDecks(games[gameIndex]);
+      updateClientsViewChoices(games[gameIndex]);
 
     } else {
       // Si c'est le dernier lancer
@@ -137,10 +167,20 @@ io.on('connection', socket => {
       games[gameIndex].gameState.deck.rollsCounter++;
       games[gameIndex].gameState.deck.dices = GameService.dices.lockEveryDice(games[gameIndex].gameState.deck.dices);
 
-      // Timer court pour voir les dés avant changement de tour
-      games[gameIndex].gameState.timer = GameService.timer.getEndTurnDuration();
-      updateClientsViewTimers(games[gameIndex]);
+      // Combinations management
+      const dices = games[gameIndex].gameState.deck.dices;
+      const isDefi = false;
+      const isSec = games[gameIndex].gameState.deck.rollsCounter === 2;
+      games[gameIndex].gameState.choices.availableChoices = GameService.choices.findCombinations(dices, isDefi, isSec);
+
+      // Timer court seulement si pas de choix disponibles
+      if (games[gameIndex].gameState.choices.availableChoices.length === 0) {
+        games[gameIndex].gameState.timer = GameService.timer.getEndTurnDuration();
+        updateClientsViewTimers(games[gameIndex]);
+      }
+
       updateClientsViewDecks(games[gameIndex]);
+      updateClientsViewChoices(games[gameIndex]);
     }
 
   });
@@ -154,6 +194,42 @@ io.on('connection', socket => {
     games[gameIndex].gameState.deck.dices[indexDice].locked = !games[gameIndex].gameState.deck.dices[indexDice].locked;
 
     updateClientsViewDecks(games[gameIndex]);
+  });
+
+  socket.on('game.choices.selected', (data) => {
+    const gameIndex = GameService.utils.findGameIndexBySocketId(games, socket.id);
+    games[gameIndex].gameState.choices.idSelectedChoice = data.choiceId;
+    // Auto-lock dice corresponding to the selected combination
+    games[gameIndex].gameState.deck.dices = GameService.choices.lockDicesForChoice(
+      games[gameIndex].gameState.deck.dices,
+      data.choiceId
+    );
+    // Update grid: reset then highlight cells matching the choice
+    games[gameIndex].gameState.grid = GameService.grid.resetcanBeCheckedCells(games[gameIndex].gameState.grid);
+    games[gameIndex].gameState.grid = GameService.grid.updateGridAfterSelectingChoice(data.choiceId, games[gameIndex].gameState.grid);
+
+    updateClientsViewChoices(games[gameIndex]);
+    updateClientsViewDecks(games[gameIndex]);
+    updateClientsViewGrid(games[gameIndex]);
+  });
+
+  socket.on('game.grid.selected', (data) => {
+    const gameIndex = GameService.utils.findGameIndexBySocketId(games, socket.id);
+
+    games[gameIndex].gameState.grid = GameService.grid.resetcanBeCheckedCells(games[gameIndex].gameState.grid);
+    games[gameIndex].gameState.grid = GameService.grid.selectCell(data.cellId, data.rowIndex, data.cellIndex, games[gameIndex].gameState.currentTurn, games[gameIndex].gameState.grid);
+
+    // Transition 5s avant changement de tour (l'intervalle gère le switch)
+    games[gameIndex].gameState.timer = GameService.timer.getEndTurnDuration();
+    games[gameIndex].gameState.deck = GameService.init.deck();
+    // Bloquer le bouton roll pendant la transition
+    games[gameIndex].gameState.deck.rollsCounter = games[gameIndex].gameState.deck.rollsMaximum + 1;
+    games[gameIndex].gameState.choices = GameService.init.choices();
+
+    updateClientsViewTimers(games[gameIndex]);
+    updateClientsViewDecks(games[gameIndex]);
+    updateClientsViewChoices(games[gameIndex]);
+    updateClientsViewGrid(games[gameIndex]);
   });
 
   socket.on('disconnect', reason => {

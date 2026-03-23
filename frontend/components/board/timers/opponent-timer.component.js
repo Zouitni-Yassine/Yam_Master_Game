@@ -12,6 +12,7 @@ const OpponentTimer = () => {
     socket.on("game.timer", (data) => {
       setOpponentTimer(data['opponentTimer']);
     });
+    return () => socket.off("game.timer");
   }, []);
 
   return (

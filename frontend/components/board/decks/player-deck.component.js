@@ -24,6 +24,7 @@ const PlayerDeck = () => {
         setDices(data['dices']);
       }
     });
+    return () => socket.off("game.deck.view-state");
   }, []);
 
   const toggleDiceLock = (index) => {

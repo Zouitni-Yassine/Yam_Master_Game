@@ -17,6 +17,7 @@ const OpponentDeck = () => {
         setOpponentDices(data['dices']);
       }
     });
+    return () => socket.off("game.deck.view-state");
   }, []);
 
   return (
