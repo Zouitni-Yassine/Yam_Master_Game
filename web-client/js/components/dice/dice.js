@@ -66,12 +66,12 @@ const DiceSystem = (() => {
         });
     }
 
-    function updateDiceFromServer(serverDices) {
+    function updateDiceFromServer(serverDices, skipRotation = false) {
         serverDices.forEach((sd, i) => {
             if (i >= DiceConfig.COUNT) return;
             const prev = diceStates[i].value;
             diceStates[i] = { ...diceStates[i], value: sd.value, locked: sd.locked, id: sd.id };
-            if (sd.value !== '' && parseInt(sd.value) !== parseInt(prev)) setDieValue(i, parseInt(sd.value));
+            if (!skipRotation && sd.value !== '' && parseInt(sd.value) !== parseInt(prev)) setDieValue(i, parseInt(sd.value));
             if (sd.value !== '') diceMeshes[i].visible = true;
             if (Array.isArray(diceMeshes[i].material)) {
                 const on = sd.locked && sd.value !== '';

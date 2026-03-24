@@ -31,8 +31,12 @@ const GameSocketHandlers = {
             const wasMyTurn = state.isMyTurn;
             state.isMyTurn = data.playerTimer > 0;
             if (state.isMyTurn !== wasMyTurn) {
+                state.animGeneration++;
+                const cup = DiceCup.getOpponentCup();
+                gsap.killTweensOf(cup.position); gsap.killTweensOf(cup.rotation);
                 UIManager.setTurnIndicator(state.isMyTurn);
                 DiceSystem.setPlayerTurn(state.isMyTurn);
+                state.isRolling = false; state.scatterCallback = null; state.pendingServerDices = null;
                 if (state.isMyTurn) {
                     DiceSystem.resetDice();
                     Animations.showDiceEntry(DiceSystem.getDiceMeshes());
@@ -80,14 +84,18 @@ const GameSocketHandlers = {
                     const prevRolls = state.opponentRollsCounter;
                     state.opponentRollsCounter = data.rollsCounter;
 
-                    if (data.rollsCounter > prevRolls && data.rollsCounter > 0) {
+                    const isReset = data.dices.every(d => !d.value || d.value === '');
+                    if (!isReset && data.rollsCounter > prevRolls && data.rollsCounter > 0) {
                         // Opponent just rolled — animate cup + dice scatter
                         const values     = data.dices.map(d => d.value);
                         const diceMeshes = DiceSystem.getDiceMeshes();
                         const diceStates = DiceSystem.getDiceStates();
+                        const gen        = state.animGeneration;
                         DiceCup.animateRoll(false, diceMeshes, diceStates, () => {
+                            if (state.animGeneration !== gen) return;
                             Animations.rollDice(diceMeshes, diceStates, values, () => {
-                                DiceSystem.updateDiceFromServer(data.dices);
+                                if (state.animGeneration !== gen) return;
+                                DiceSystem.updateDiceFromServer(data.dices, true);
                             });
                         });
                     } else {
@@ -104,6 +112,15 @@ const GameSocketHandlers = {
         });
 
         SocketClient.onGridViewState(data => {
+            if (data.playerScore !== undefined) {
+                document.getElementById('player-score').textContent = data.playerScore;
+                document.getElementById('opponent-score').textContent = data.opponentScore;
+            }
+            if (data.winner) {
+                const isWinner = data.winner === state.idPlayer;
+                UIManager.setTurnIndicator(false);
+                document.getElementById('turn-indicator').textContent = isWinner ? '🏆 VICTOIRE !' : '💀 DÉFAITE';
+            }
             if (data.grid && state.currentGrid?.grid) {
                 data.grid.forEach((row, ri) => {
                     row.forEach((cell, ci) => {

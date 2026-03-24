@@ -290,88 +290,7 @@ body {
     margin-bottom: 3px;
 }
 
-.choice-points {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #f5d78e;
-}
 
-/* ============================================
-   SCORE PANELS (side panels)
-   ============================================ */
-.score-panel {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 170px;
-    background: linear-gradient(145deg, rgba(12, 10, 5, 0.94), rgba(8, 6, 3, 0.94));
-    border: 1px solid rgba(212, 164, 76, 0.15);
-    border-radius: 10px;
-    padding: 10px;
-    backdrop-filter: blur(12px);
-}
-
-#left-panel { left: 12px; }
-#right-panel { right: 12px; }
-
-.panel-header {
-    font-family: 'Cinzel', serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #d4a44c;
-    text-align: center;
-    letter-spacing: 0.2em;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(212, 164, 76, 0.15);
-    margin-bottom: 6px;
-}
-
-.score-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.score-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 2px 5px;
-    border-radius: 3px;
-    font-size: 0.65rem;
-    transition: all 0.3s ease;
-}
-
-.score-row .label {
-    color: #8a7a5a;
-    font-family: 'Cinzel', serif;
-    letter-spacing: 0.04em;
-}
-
-.score-row .value {
-    color: #5a4a3a;
-    font-weight: 700;
-    min-width: 18px;
-    text-align: right;
-}
-
-.score-row.filled {
-    background: rgba(212, 164, 76, 0.08);
-}
-
-.score-row.filled .value {
-    color: #f5d78e;
-}
-
-.score-row.player-owned {
-    background: rgba(204, 17, 17, 0.12);
-    border-left: 2px solid #cc1111;
-}
-
-.score-row.opponent-owned {
-    background: rgba(50, 50, 50, 0.2);
-    border-left: 2px solid #444444;
-}
 
 /* ============================================
    ACTION BAR (bottom buttons)
@@ -524,13 +443,7 @@ body {
 }
 
 /* ---- Responsive ---- */
-@media (max-width: 1200px) {
-    .score-panel { width: 145px; padding: 8px; }
-    .score-row { font-size: 0.6rem; }
-}
-
 @media (max-width: 900px) {
-    .score-panel { display: none; }
     #top-bar { padding: 8px 0.8rem; }
     .score-badge { padding: 4px 10px 4px 6px; }
     .badge-score { font-size: 1.2rem; }

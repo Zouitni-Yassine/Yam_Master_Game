@@ -6,51 +6,11 @@
 const UIManager = (() => {
     const TURN_DURATION = 30;
 
-    // Score panel labels — matches the grid categories
-    const SCORE_LABELS = [
-        { id: 'brelan1', label: 'As' },
-        { id: 'brelan2', label: 'Deux' },
-        { id: 'brelan3', label: 'Trois' },
-        { id: 'brelan4', label: 'Quatre' },
-        { id: 'brelan5', label: 'Cinq' },
-        { id: 'brelan6', label: 'Six' },
-        { id: 'full', label: 'Full' },
-        { id: 'carre', label: 'Carré' },
-        { id: 'yam', label: 'Yam' },
-        { id: 'suite', label: 'Suite' },
-        { id: 'moinshuit', label: '≤8' },
-        { id: 'sec', label: 'Sec' },
-        { id: 'defi', label: 'Défi' }
-    ];
-
     let onChoiceSelectedCallback = null;
     let onGridCellSelectedCallback = null;
     let currentSelectedChoice = null;
 
-    function init() {
-        buildScorePanels();
-    }
-
-    function buildScorePanels() {
-        const playerGrid = document.getElementById('player-grid');
-        const opponentGrid = document.getElementById('opponent-grid');
-
-        SCORE_LABELS.forEach(item => {
-            playerGrid.appendChild(createScoreRow(item, 'player'));
-            opponentGrid.appendChild(createScoreRow(item, 'opponent'));
-        });
-    }
-
-    function createScoreRow(item, side) {
-        const row = document.createElement('div');
-        row.className = 'score-row';
-        row.id = `${side}-${item.id}`;
-        row.innerHTML = `
-            <span class="label">${item.label}</span>
-            <span class="value">—</span>
-        `;
-        return row;
-    }
+    function init() {}
 
     // ---- Timer ----
     function updateTimer(playerTime, opponentTime) {
@@ -122,10 +82,7 @@ const UIManager = (() => {
             if (!canMakeChoice) card.classList.add('disabled');
             if (choice.id === selectedChoiceId) card.classList.add('selected');
 
-            card.innerHTML = `
-                <div class="choice-name">${choice.value}</div>
-                <div class="choice-points">${getChoicePoints(choice.id)}</div>
-            `;
+            card.innerHTML = `<div class="choice-name">${choice.value}</div>`;
 
             card.addEventListener('click', () => {
                 if (canMakeChoice && onChoiceSelectedCallback) {
@@ -137,17 +94,6 @@ const UIManager = (() => {
         });
 
         Animations.showChoicesBar();
-    }
-
-    function getChoicePoints(choiceId) {
-        const pointsMap = {
-            'brelan1': '3 pts', 'brelan2': '6 pts', 'brelan3': '9 pts',
-            'brelan4': '12 pts', 'brelan5': '15 pts', 'brelan6': '18 pts',
-            'full': '25 pts', 'carre': '30 pts', 'yam': '50 pts',
-            'suite': '40 pts', 'moinshuit': '≤8', 'sec': 'Sec',
-            'defi': 'Défi'
-        };
-        return pointsMap[choiceId] || '';
     }
 
     // ---- Grid ----
@@ -171,12 +117,6 @@ const UIManager = (() => {
     function onChoiceSelected(callback) { onChoiceSelectedCallback = callback; }
     function onGridCellSelected(callback) { onGridCellSelectedCallback = callback; }
     function getOnGridCellSelectedCallback() { return onGridCellSelectedCallback; }
-
-    // ---- Scores ----
-    function updateScores(playerScore, opponentScore) {
-        document.getElementById('player-score').textContent = playerScore || 0;
-        document.getElementById('opponent-score').textContent = opponentScore || 0;
-    }
 
     // ---- Queue Overlay ----
     function showQueueOverlay(show) {
@@ -236,7 +176,7 @@ const UIManager = (() => {
         setRollButtonState, showValidateButton,
         updateChoices, updateGrid,
         onChoiceSelected, onGridCellSelected, getOnGridCellSelectedCallback,
-        updateScores, showQueueOverlay, setConnectionStatus, setQueueButtons,
+        showQueueOverlay, setConnectionStatus, setQueueButtons,
         updateLoading, hideLoading
     };
 })();

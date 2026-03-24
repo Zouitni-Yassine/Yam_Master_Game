@@ -13,15 +13,19 @@ const GameUIHandlers = {
 
             const dices  = DiceSystem.getDiceMeshes();
             const states = DiceSystem.getDiceStates();
+            const gen    = state.animGeneration;
 
             const doScatter = (serverDices) => {
+                if (state.animGeneration !== gen) return;
                 Animations.rollDice(dices, states, serverDices.map(sd => sd.value), () => {
+                    if (state.animGeneration !== gen) return;
                     state.isRolling = false;
-                    DiceSystem.updateDiceFromServer(serverDices);
+                    DiceSystem.updateDiceFromServer(serverDices, true);
                 });
             };
 
             DiceCup.animateRoll(true, dices, states, () => {
+                if (state.animGeneration !== gen) return;
                 if (state.pendingServerDices) { doScatter(state.pendingServerDices); state.pendingServerDices = null; }
                 else                          { state.scatterCallback = doScatter; }
             });
@@ -29,6 +33,8 @@ const GameUIHandlers = {
 
         document.getElementById('btn-validate').addEventListener('click', () => {
             if (!state.selectedGridCell || !state.selectedChoice) return;
+            state.animGeneration++;
+            state.isRolling = false; state.scatterCallback = null; state.pendingServerDices = null;
             const { cellId, rowIndex, cellIndex } = state.selectedGridCell;
             SocketClient.selectGridCell(cellId, rowIndex, cellIndex);
             UIManager.showValidateButton(false);

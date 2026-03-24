@@ -9,6 +9,7 @@ const GameState = (() => {
         hasRolledThisTurn: false,
         opponentRollsCounter: 0,
         opponentInitialized: false,
+        animGeneration: 0,
         pendingServerDices: null, scatterCallback: null
     };
 

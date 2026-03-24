@@ -166,10 +166,16 @@ const GameService = {
             },
 
             gridViewState: (playerKey, gameState) => {
+                const scores = GameService.grid.computeScores(gameState.grid);
+                const opponentKey = playerKey === 'player:1' ? 'player:2' : 'player:1';
+                const winner = scores['player:1'].winner ? 'player:1' : (scores['player:2'].winner ? 'player:2' : null);
                 return {
                     displayGrid: true,
                     canSelectCells: (playerKey === gameState.currentTurn) && (gameState.choices.availableChoices.length > 0),
-                    grid: gameState.grid
+                    grid: gameState.grid,
+                    playerScore: scores[playerKey].score,
+                    opponentScore: scores[opponentKey].score,
+                    winner
                 };
             },
         }
@@ -244,6 +250,44 @@ const GameService = {
                 }
                 return cell;
             }));
+        },
+
+        computeScores: (grid) => {
+            const ROWS = grid.length, COLS = grid[0].length;
+            const result = {};
+
+            for (const p of ['player:1', 'player:2']) {
+                let score = 0, winner = false;
+
+                const checkLine = (cells) => {
+                    let run = 0;
+                    const flush = (n) => {
+                        if (n >= 5) winner = true;
+                        else if (n >= 3) score += n - 2; // 3→1pt, 4→2pts
+                    };
+                    for (const cell of cells) {
+                        if (cell.owner === p) run++;
+                        else { flush(run); run = 0; }
+                    }
+                    flush(run);
+                };
+
+                for (let r = 0; r < ROWS; r++) checkLine(grid[r]);
+                for (let c = 0; c < COLS; c++) checkLine(grid.map(row => row[c]));
+                for (let k = -(COLS-1); k <= ROWS-1; k++) {
+                    const cells = [];
+                    for (let r = 0; r < ROWS; r++) { const c = r - k; if (c >= 0 && c < COLS) cells.push(grid[r][c]); }
+                    if (cells.length >= 3) checkLine(cells);
+                }
+                for (let k = 0; k <= ROWS+COLS-2; k++) {
+                    const cells = [];
+                    for (let r = 0; r < ROWS; r++) { const c = k - r; if (c >= 0 && c < COLS) cells.push(grid[r][c]); }
+                    if (cells.length >= 3) checkLine(cells);
+                }
+
+                result[p] = { score, winner };
+            }
+            return result;
         },
     },
 
