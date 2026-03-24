@@ -6,7 +6,12 @@
       "Bash(do node -c \"$f\")",
       "Bash(echo \"OK: $f\")",
       "Bash(echo \"FAIL: $f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(mkdir -p components contexts controllers services)",
+      "Bash(mv scene.js table.js dice.js dice-cup.js chips.js components/)",
+      "Bash(mv socket-client.js contexts/)",
+      "Bash(mv game-state.js controllers/)",
+      "Bash(mv animations.js ui.js services/)"
     ]
   }
 }
