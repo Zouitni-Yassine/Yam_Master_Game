@@ -16,6 +16,13 @@ const SocketClient = (() => {
     let onDeckViewStateCallback = null;
     let onChoicesViewStateCallback = null;
     let onGridViewStateCallback = null;
+    let onRoomCreatedCallback = null;
+    let onRoomJoinedCallback = null;
+    let onRoomErrorCallback = null;
+    let onRankingUpdateCallback = null;
+    let onUserLoggedCallback = null;
+    let onUserErrorCallback = null;
+    let onRankingListCallback = null;
 
     function connect() {
         socket = io(SERVER_URL, {
@@ -59,6 +66,14 @@ const SocketClient = (() => {
         socket.on('game.grid.view-state', (data) => {
             if (onGridViewStateCallback) onGridViewStateCallback(data);
         });
+
+        socket.on('room.created', (data) => { if (onRoomCreatedCallback) onRoomCreatedCallback(data); });
+        socket.on('room.joined',  (data) => { if (onRoomJoinedCallback)  onRoomJoinedCallback(data); });
+        socket.on('room.error',   (data) => { if (onRoomErrorCallback)   onRoomErrorCallback(data); });
+        socket.on('ranking.update', (data) => { if (onRankingUpdateCallback) onRankingUpdateCallback(data); });
+        socket.on('user.logged', (data) => { if (onUserLoggedCallback) onUserLoggedCallback(data); });
+        socket.on('user.error',  (data) => { if (onUserErrorCallback)  onUserErrorCallback(data); });
+        socket.on('ranking.list', (data) => { if (onRankingListCallback) onRankingListCallback(data); });
     }
 
     // ---- Emit actions ----
@@ -86,6 +101,13 @@ const SocketClient = (() => {
         if (socket) socket.emit('game.grid.selected', { cellId, rowIndex, cellIndex });
     }
 
+    function joinBot(difficulty) { if (socket) socket.emit('queue.join.bot', { difficulty }); }
+    function createRoom() { if (socket) socket.emit('room.create'); }
+    function joinRoom(code) { if (socket) socket.emit('room.join', { code }); }
+    function userLogin(username, password) { if (socket) socket.emit('user.login', { username, password }); }
+    function userRegister(username, password, avatar) { if (socket) socket.emit('user.register', { username, password, avatar }); }
+    function getRankingList() { if (socket) socket.emit('user.ranking.get'); }
+
     // ---- Register callbacks ----
     function onConnect(cb) { onConnectCallback = cb; }
     function onDisconnect(cb) { onDisconnectCallback = cb; }
@@ -95,14 +117,25 @@ const SocketClient = (() => {
     function onDeckViewState(cb) { onDeckViewStateCallback = cb; }
     function onChoicesViewState(cb) { onChoicesViewStateCallback = cb; }
     function onGridViewState(cb) { onGridViewStateCallback = cb; }
+    function onRoomCreated(cb) { onRoomCreatedCallback = cb; }
+    function onRoomJoined(cb)  { onRoomJoinedCallback = cb; }
+    function onRoomError(cb)   { onRoomErrorCallback = cb; }
+    function onRankingUpdate(cb) { onRankingUpdateCallback = cb; }
+    function onUserLogged(cb) { onUserLoggedCallback = cb; }
+    function onUserError(cb)  { onUserErrorCallback = cb; }
+    function onRankingList(cb) { onRankingListCallback = cb; }
 
     function getSocket() { return socket; }
 
     return {
         connect, joinQueue, leaveQueue,
         rollDice, lockDice, selectChoice, selectGridCell,
+        joinBot, createRoom, joinRoom,
+        userLogin, userRegister, getRankingList,
         onConnect, onDisconnect, onQueueAdded, onGameStart,
         onTimer, onDeckViewState, onChoicesViewState, onGridViewState,
+        onRoomCreated, onRoomJoined, onRoomError, onRankingUpdate,
+        onUserLogged, onUserError, onRankingList,
         getSocket
     };
 })();

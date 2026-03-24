@@ -116,6 +116,20 @@ const SoundManager = (() => {
     setProgress(80, 'Configuration de l\'interface...');
     UIManager.init();
 
+    // Init menu die
+    MenuDie.init();
+
+    // Init login 3D scene
+    LoginScene.init();
+
+    // Animate menu elements on load (after loading screen hides)
+    setTimeout(() => {
+        gsap.from('.menu-title', { y: -40, opacity: 0, duration: 1, ease: 'back.out(2)' });
+        gsap.from('#menu-canvas', { scale: 0, opacity: 0, duration: 0.8, delay: 0.2, ease: 'back.out(3)' });
+        gsap.from('#menu-main .menu-btn', { y: 30, opacity: 0, duration: 0.5, stagger: 0.12, delay: 0.4, ease: 'back.out(2)' });
+        gsap.from('#player-info-bar', { opacity: 0, duration: 0.6, delay: 0.8 });
+    }, 1000);
+
     // Step 6: Connect socket
     setProgress(90, 'Connexion au serveur...');
     SocketClient.connect();
@@ -129,6 +143,17 @@ const SoundManager = (() => {
     setTimeout(() => {
         UIManager.hideLoading();
     }, 800);
+
+    // Animate login card after loading
+    setTimeout(() => {
+        const card = document.querySelector('.login-card');
+        if (card) {
+            gsap.from('.login-brand', { y: -20, opacity: 0, duration: 0.7, ease: 'back.out(2)' });
+            gsap.from('.login-tabs', { y: 10, opacity: 0, duration: 0.5, delay: 0.2, ease: 'power2.out' });
+            gsap.from('.login-field-wrap', { y: 15, opacity: 0, duration: 0.4, stagger: 0.1, delay: 0.35, ease: 'power2.out' });
+            gsap.from('.login-btn', { y: 10, opacity: 0, duration: 0.4, delay: 0.6, ease: 'back.out(2)' });
+        }
+    }, 1000);
 
     // ---- Game Loop ----
     function animate() {

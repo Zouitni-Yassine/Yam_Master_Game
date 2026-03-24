@@ -10,7 +10,8 @@ const GameState = (() => {
         opponentRollsCounter: 0,
         opponentInitialized: false,
         animGeneration: 0,
-        pendingServerDices: null, scatterCallback: null
+        pendingServerDices: null, scatterCallback: null,
+        previousPlayerScore: 0
     };
 
     function init() {

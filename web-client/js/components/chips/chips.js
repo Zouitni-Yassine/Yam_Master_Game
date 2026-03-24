@@ -29,6 +29,14 @@ const ChipSystem = (() => {
         }
     }
 
+    // Called once at game start — if player 2, swap stack positions so own chips are in front
+    function setPlayerSide(isPlayer1) {
+        if (isPlayer1) return; // player 1 already has correct layout
+        // Move p1 chips to P2_POS (far) and p2 chips to P1_POS (near)
+        p1Chips.forEach(chip => { chip.position.x = P2_POS.x; chip.position.z = P2_POS.z; });
+        p2Chips.forEach(chip => { chip.position.x = P1_POS.x; chip.position.z = P1_POS.z; });
+    }
+
     // ownerId = 'player:1' | 'player:2' — determines chip color consistently for both clients
     function flyChipToCell(row, col, ownerId) {
         const arr = ownerId === 'player:1' ? p1Chips : p2Chips;
@@ -44,5 +52,5 @@ const ChipSystem = (() => {
         gsap.to(chip.rotation, { y: `+=${Math.PI * 6}`, duration: 0.82, ease: 'power2.out' });
     }
 
-    return { init, flyChipToCell };
+    return { init, flyChipToCell, setPlayerSide };
 })();

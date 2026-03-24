@@ -26,10 +26,10 @@
         <div id="top-bar">
             <!-- Player score badge (left) -->
             <div class="score-badge player-badge">
-                <div class="badge-icon">♠</div>
+                <div class="badge-icon" id="player-badge-avatar">🎲</div>
                 <div class="badge-info">
-                    <span class="badge-label">VOUS</span>
-                    <span id="player-score" class="badge-score">0</span>
+                    <span class="badge-label" id="player-badge-name">VOUS</span>
+                    <span id="player-score" class="badge-score">$0</span>
                 </div>
                 <div id="player-timer-ring" class="timer-ring">
                     <svg viewBox="0 0 40 40">
@@ -56,10 +56,10 @@
                     <span id="opponent-timer-text" class="timer-text">--</span>
                 </div>
                 <div class="badge-info">
-                    <span class="badge-label">ADVERSAIRE</span>
-                    <span id="opponent-score" class="badge-score">0</span>
+                    <span class="badge-label" id="opponent-badge-name">ADVERSAIRE</span>
+                    <span id="opponent-score" class="badge-score">$0</span>
                 </div>
-                <div class="badge-icon">♦</div>
+                <div class="badge-icon" id="opponent-badge-avatar">👤</div>
             </div>
         </div>
 
@@ -80,15 +80,165 @@
             </button>
         </div>
 
-        <!-- Queue/Connection overlay -->
-        <div id="queue-overlay">
-            <div class="queue-content">
-                <h2>YAM'S CASINO</h2>
-                <p id="connection-status">Connexion au serveur...</p>
-                <button id="btn-join-queue" class="queue-btn" disabled>REJOINDRE LA PARTIE</button>
-                <button id="btn-leave-queue" class="queue-btn danger hidden">QUITTER LA FILE</button>
-                <p id="queue-status" class="hidden">En attente d'un adversaire...</p>
+        <!-- Login Overlay -->
+        <div id="login-overlay">
+            <canvas id="login-canvas"></canvas>
+            <div class="login-card">
+                <div class="login-brand">
+                    <div class="login-brand-icon"><canvas id="login-die-canvas"></canvas></div>
+                    <h1 class="login-brand-title">YAM'S CASINO</h1>
+                    <p class="login-brand-sub">TABLE PRIVÉE · ACCÈS MEMBRES</p>
+                </div>
+
+                <div class="login-tabs">
+                    <button class="login-tab active" data-tab="login">CONNEXION</button>
+                    <button class="login-tab" data-tab="register">INSCRIPTION</button>
+                </div>
+
+                <div class="login-form" id="login-form">
+                    <div class="login-field-wrap">
+                        <span class="field-icon">👤</span>
+                        <input id="login-username" class="login-input" type="text" placeholder="Nom d'utilisateur" maxlength="20" autocomplete="off">
+                    </div>
+                    <div class="login-field-wrap">
+                        <span class="field-icon">🔒</span>
+                        <input id="login-password" class="login-input" type="password" placeholder="Mot de passe" maxlength="40">
+                    </div>
+                    <button id="btn-login" class="login-btn">
+                        <span>ENTRER AU CASINO</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
+
+                <div class="login-form hidden" id="register-form">
+                    <div class="avatar-picker-wrap">
+                        <div class="avatar-picker-label">CHOISIR UN AVATAR</div>
+                        <div class="avatar-preview" id="avatar-preview">🎲</div>
+                        <button type="button" class="avatar-upload-btn" id="btn-upload-avatar">📁 Importer une photo</button>
+                        <input type="file" id="avatar-file-input" accept="image/*" style="display:none">
+                        <div class="avatar-divider">— ou choisir —</div>
+                        <div class="avatar-picker-grid">
+                            <button type="button" class="avatar-opt selected" data-avatar="🎲">🎲</button>
+                            <button type="button" class="avatar-opt" data-avatar="♠">♠</button>
+                            <button type="button" class="avatar-opt" data-avatar="♥">♥</button>
+                            <button type="button" class="avatar-opt" data-avatar="♦">♦</button>
+                            <button type="button" class="avatar-opt" data-avatar="♣">♣</button>
+                            <button type="button" class="avatar-opt" data-avatar="🃏">🃏</button>
+                            <button type="button" class="avatar-opt" data-avatar="👑">👑</button>
+                            <button type="button" class="avatar-opt" data-avatar="🦁">🦁</button>
+                        </div>
+                    </div>
+                    <div class="login-field-wrap">
+                        <span class="field-icon">👤</span>
+                        <input id="reg-username" class="login-input" type="text" placeholder="Choisir un pseudo" maxlength="20" autocomplete="off">
+                    </div>
+                    <div class="login-field-wrap">
+                        <span class="field-icon">🔒</span>
+                        <input id="reg-password" class="login-input" type="password" placeholder="Choisir un mot de passe" maxlength="40">
+                    </div>
+                    <button id="btn-register" class="login-btn">
+                        <span>CRÉER MON COMPTE</span>
+                        <span class="btn-arrow">→</span>
+                    </button>
+                </div>
+
+                <p id="login-error" class="login-error hidden"></p>
             </div>
+        </div>
+
+        <!-- Main Menu Overlay -->
+        <div id="queue-overlay" class="hidden">
+            <canvas id="menu-bg-canvas"></canvas>
+            <div class="menu-layout">
+
+                <!-- Player chip top -->
+                <div class="menu-player-chip" id="menu-player-chip">
+                    <div class="menu-chip-avatar" id="menu-avatar-display">🎲</div>
+                    <div class="menu-chip-info">
+                        <span id="player-username-display" class="menu-chip-name">—</span>
+                        <span id="menu-player-score" class="menu-chip-score">$1,000</span>
+                    </div>
+                    <button id="btn-ranking" class="ranking-btn">🏆 CLASSEMENT</button>
+                </div>
+
+                <!-- Die + Title -->
+                <div class="menu-hero">
+                    <canvas id="menu-canvas"></canvas>
+                    <h1 class="menu-title">YAM'S CASINO</h1>
+                    <p id="connection-status" class="menu-status">Connexion...</p>
+                </div>
+
+                <!-- Main buttons -->
+                <div id="menu-main" class="menu-section">
+                    <button id="btn-join-queue" class="menu-btn primary" disabled>
+                        <span class="mbtn-icon">🌐</span>
+                        <span class="mbtn-text">JOUER EN LIGNE</span>
+                    </button>
+                    <button id="btn-play-friend" class="menu-btn">
+                        <span class="mbtn-icon">👥</span>
+                        <span class="mbtn-text">JOUER AVEC UN AMI</span>
+                    </button>
+                    <button id="btn-play-bot" class="menu-btn">
+                        <span class="mbtn-icon">🤖</span>
+                        <span class="mbtn-text">JOUER CONTRE LE BOT</span>
+                    </button>
+                </div>
+
+                <!-- Friend sub-menu -->
+                <div id="menu-friend" class="menu-section hidden">
+                    <div class="submenu-title">JOUER AVEC UN AMI</div>
+                    <button id="btn-create-room" class="menu-btn primary">CRÉER UNE PARTIE</button>
+                    <div id="room-code-display" class="hidden">
+                        <div class="code-label">CODE DE LA PARTIE</div>
+                        <div id="room-code-text" class="room-code"></div>
+                        <div class="waiting-dots">En attente de l'adversaire<span class="dots">...</span></div>
+                    </div>
+                    <div class="divider-or">— OU —</div>
+                    <div class="join-row">
+                        <input id="room-code-input" class="code-input" placeholder="ENTRER UN CODE" maxlength="6">
+                        <button id="btn-join-room" class="menu-btn small">REJOINDRE</button>
+                    </div>
+                    <p id="room-error" class="room-error hidden"></p>
+                    <button id="btn-back-friend" class="menu-btn back">← RETOUR</button>
+                </div>
+
+                <!-- Bot sub-menu -->
+                <div id="menu-bot" class="menu-section hidden">
+                    <div class="submenu-title">CHOISIR LA DIFFICULTÉ</div>
+                    <button class="menu-btn difficulty" data-diff="easy">
+                        <span class="diff-icon">😊</span>
+                        <div class="diff-info"><span class="diff-name">FACILE</span><span class="diff-desc">Pour s'échauffer</span></div>
+                    </button>
+                    <button class="menu-btn difficulty" data-diff="medium">
+                        <span class="diff-icon">🧠</span>
+                        <div class="diff-info"><span class="diff-name">MOYEN</span><span class="diff-desc">Un vrai défi</span></div>
+                    </button>
+                    <button class="menu-btn difficulty hard" data-diff="hard">
+                        <span class="diff-icon">💀</span>
+                        <div class="diff-info"><span class="diff-name">DIFFICILE</span><span class="diff-desc">Bonne chance...</span></div>
+                    </button>
+                    <button id="btn-back-bot" class="menu-btn back">← RETOUR</button>
+                </div>
+
+                <!-- Waiting screen -->
+                <div id="menu-waiting" class="menu-section hidden">
+                    <div class="submenu-title">EN ATTENTE</div>
+                    <div class="waiting-dots">Recherche d'un adversaire<span class="dots">...</span></div>
+                    <button id="btn-leave-queue" class="menu-btn back">ANNULER</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Ranking overlay -->
+        <div id="ranking-overlay" class="hidden">
+          <div class="ranking-panel">
+            <div class="ranking-header">
+              <span>🏆 CLASSEMENT</span>
+              <button id="btn-close-ranking" class="ranking-close">✕</button>
+            </div>
+            <div id="ranking-list" class="ranking-list"></div>
+          </div>
         </div>
     </div>
 
@@ -118,6 +268,9 @@
     <!-- Dice Cup -->
     <script src="js/components/dice-cup/cup.model.js"></script>
     <script src="js/components/dice-cup/dice-cup.js"></script>
+    <script src="js/services/login-scene.js"></script>
+    <script src="js/services/menu-bg.js"></script>
+    <script src="js/services/menu-die.js"></script>
     <!-- Services -->
     <script src="js/services/ui.js"></script>
     <script src="js/services/animations.js"></script>

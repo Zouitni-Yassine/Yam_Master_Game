@@ -121,6 +121,7 @@ const GameService = {
                 return {
                     inQueue: false,
                     inGame: true,
+                    playerKey,
                     idPlayer:
                         (playerKey === 'player:1')
                             ? game.player1Socket.id
