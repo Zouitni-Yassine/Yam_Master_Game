@@ -1,3 +1,19 @@
+function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    gsap.killTweensOf(el);
+    gsap.fromTo(el,
+        { opacity: 0, y: -16, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(1.4)',
+          onComplete: () => {
+              gsap.to(el, { opacity: 0, y: -10, duration: 0.5, delay: 3.5,
+                  onComplete: () => el.classList.add('hidden') });
+          }
+        }
+    );
+}
+
 const GameUIHandlers = {
     setup(state) {
         // ---- Login tabs ----
@@ -117,21 +133,7 @@ const GameUIHandlers = {
             SocketClient.userRegister(u, p, selectedAvatar, firstname, lastname, email, dob);
         });
 
-        function _loginError(msg) {
-            const el = document.getElementById('login-error');
-            el.textContent = msg;
-            el.classList.remove('hidden');
-            gsap.killTweensOf(el);
-            gsap.fromTo(el,
-                { opacity: 1, y: -10 },
-                { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out',
-                  onComplete: () => {
-                      gsap.to(el, { opacity: 0, y: -10, duration: 0.4, delay: 3,
-                          onComplete: () => el.classList.add('hidden') });
-                  }
-                }
-            );
-        }
+        function _loginError(msg) { showLoginError(msg); }
 
         // Enter key on login/register inputs
         ['login-username','login-password'].forEach(id => {
@@ -197,6 +199,7 @@ const GameUIHandlers = {
         document.getElementById('btn-leave-queue').addEventListener('click', () => {
             SocketClient.leaveQueue();
             showSection('menu-main');
+            UIManager.setQueueButtons('connected');
             state.inQueue = false;
         });
 

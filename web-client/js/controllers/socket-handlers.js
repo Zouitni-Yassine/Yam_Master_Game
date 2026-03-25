@@ -75,8 +75,8 @@ function _renderLeaderboard() {
 
 function renderAvatar(el, av) {
     if (!el) return;
-    if (av && av.startsWith('data:')) {
-        el.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+    if (av && (av.startsWith('data:') || av.startsWith('/'))) {
+        el.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;">`;
     } else {
         el.textContent = av || '🎲';
     }
@@ -168,7 +168,7 @@ const GameSocketHandlers = {
 
         SocketClient.onDeckViewState(data => {
             state.currentDeck = data; state.rollsCounter = data.rollsCounter;
-            UIManager.updateRollCounter(Math.min(data.rollsCounter, data.rollsMaximum), data.rollsMaximum);
+            UIManager.updateRollCounter(Math.min(data.rollsCounter - 1, data.rollsMaximum), data.rollsMaximum);
 
             if (data.displayPlayerDeck) {
                 DiceSystem.showDice(true);
@@ -306,9 +306,7 @@ const GameSocketHandlers = {
         });
 
         SocketClient.onUserError(data => {
-            const el = document.getElementById('login-error');
-            el.textContent = data.message;
-            el.classList.remove('hidden');
+            showLoginError(data.message);
         });
 
         SocketClient.onRankingList(data => {

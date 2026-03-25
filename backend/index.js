@@ -134,12 +134,8 @@ const executeBotTurn = (gameIndex) => {
         const isSec = game.gameState.deck.rollsCounter === 2;
         game.gameState.choices.availableChoices = GameService.choices.findCombinations(dices, false, isSec);
         const isLast = game.gameState.deck.rollsCounter > maxRolls;
-        if (isLast) {
-            game.gameState.deck.dices = GameService.dices.lockEveryDice(dices);
-        } else {
-            const toKeep = BotService.decideLock(dices, difficulty);
-            game.gameState.deck.dices = dices.map(d => ({ ...d, locked: toKeep.includes(d.id) }));
-        }
+        const toKeep = BotService.decideLock(dices, difficulty);
+        game.gameState.deck.dices = dices.map(d => ({ ...d, locked: toKeep.includes(d.id) }));
         updateClientsViewDecks(game);
         updateClientsViewChoices(game);
         setTimeout(isLast ? doChoose : doRoll, afterRollDelay);
@@ -206,8 +202,9 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     games.push(newGame);
     const gameIndex = GameService.utils.findGameIndexById(games, newGame.idGame);
 
-    const p1info = socketToUser[player1Socket.id] || { username: 'Joueur 1', avatar: '🎲' };
-    const p2info = socketToUser[player2Socket.id] || { username: isBot ? 'Bot' : 'Joueur 2', avatar: isBot ? '🤖' : '🎲' };
+    const botInfo = { username: 'DiceKing', avatar: '/logo/ai.png' };
+    const p1info = socketToUser[player1Socket.id] || (isBot && botKey === 'player:1' ? botInfo : { username: 'Joueur 1', avatar: '🎲' });
+    const p2info = socketToUser[player2Socket.id] || (isBot && botKey === 'player:2' ? botInfo : { username: 'Joueur 2', avatar: '🎲' });
 
     player1Socket.emit('game.start', {
         ...GameService.send.forPlayer.viewGameState('player:1', games[gameIndex]),
@@ -351,7 +348,7 @@ io.on('connection', socket => {
         const dices = games[gameIndex].gameState.deck.dices;
         const isSec = games[gameIndex].gameState.deck.rollsCounter === 2;
         games[gameIndex].gameState.choices.availableChoices = GameService.choices.findCombinations(dices, false, isSec);
-        if (games[gameIndex].gameState.deck.rollsCounter >= games[gameIndex].gameState.deck.rollsMaximum) {
+        if (games[gameIndex].gameState.deck.rollsCounter > games[gameIndex].gameState.deck.rollsMaximum) {
             games[gameIndex].gameState.deck.dices = GameService.dices.lockEveryDice(dices);
             if (games[gameIndex].gameState.choices.availableChoices.length === 0) {
                 games[gameIndex].gameState.timer = GameService.timer.getEndTurnDuration();
