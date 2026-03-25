@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="gchip" cx="40%" cy="35%"><stop offset="0%" stop-color="#f0d070"/><stop offset="100%" stop-color="#6a4808"/></radialGradient>
+    <radialGradient id="gcin" cx="40%" cy="35%"><stop offset="0%" stop-color="#1a1006"/><stop offset="100%" stop-color="#0a0703"/></radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" rx="22" fill="#0f0a02"/>
+  <rect width="200" height="200" rx="22" fill="none" stroke="#3a2c0e" stroke-width="2"/>
+  <rect x="1" y="1" width="198" height="198" rx="21" fill="none" stroke="#f5d06030" stroke-width="0.8"/>
+  <g filter="url(#glow)">
+    <circle cx="100" cy="100" r="76" fill="url(#gchip)"/>
+    <circle cx="100" cy="100" r="60" fill="url(#gcin)"/>
+    <circle cx="100" cy="100" r="38" fill="url(#gchip)" opacity="0.8"/>
+    <circle cx="100" cy="100" r="76" fill="none" stroke="#f5d060" stroke-width="1" opacity="0.4"/>
+    <circle cx="100" cy="100" r="60" fill="none" stroke="#f5d060" stroke-width="0.6" opacity="0.25"/>
+    <rect x="91" y="24" width="18" height="20" rx="4" fill="#c8302a"/>
+    <rect x="91" y="156" width="18" height="20" rx="4" fill="#c8302a"/>
+    <rect x="24" y="91" width="20" height="18" rx="4" fill="#c8302a"/>
+    <rect x="156" y="91" width="20" height="18" rx="4" fill="#c8302a"/>
+    <rect x="46" y="36" width="14" height="18" rx="3" fill="#c8302a" transform="rotate(45 53 45)"/>
+    <rect x="140" y="36" width="14" height="18" rx="3" fill="#c8302a" transform="rotate(-45 147 45)"/>
+    <rect x="46" y="146" width="14" height="18" rx="3" fill="#c8302a" transform="rotate(-45 53 155)"/>
+    <rect x="140" y="146" width="14" height="18" rx="3" fill="#c8302a" transform="rotate(45 147 155)"/>
+    <ellipse cx="84" cy="84" rx="16" ry="10" fill="white" opacity="0.07" transform="rotate(-30 84 84)"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="gh" cx="40%" cy="30%"><stop offset="0%" stop-color="#ff6060"/><stop offset="100%" stop-color="#7a1010"/></radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" rx="22" fill="#0f0a02"/>
+  <rect width="200" height="200" rx="22" fill="none" stroke="#3a2c0e" stroke-width="2"/>
+  <rect x="1" y="1" width="198" height="198" rx="21" fill="none" stroke="#f5d06030" stroke-width="0.8"/>
+  <g filter="url(#glow)">
+    <path d="M100 168 C100 168 32 126 32 76 C32 50 52 36 72 40 C84 42 95 50 100 58 C105 50 116 42 128 40 C148 36 168 50 168 76 C168 126 100 168 100 168Z" fill="url(#gh)"/>
+    <path d="M100 168 C100 168 32 126 32 76 C32 50 52 36 72 40 C84 42 95 50 100 58 C105 50 116 42 128 40 C148 36 168 50 168 76 C168 126 100 168 100 168Z" fill="none" stroke="#ff9090" stroke-width="1" opacity="0.4"/>
+    <ellipse cx="74" cy="64" rx="14" ry="9" fill="white" opacity="0.15" transform="rotate(-30 74 64)"/>
+  </g>
+</svg>

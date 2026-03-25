@@ -39,17 +39,20 @@ const GameUIHandlers = {
         });
 
         // Avatar selection
-        let selectedAvatar = '🎲';
+        let selectedAvatar = '/logo/de.svg';
 
         function _setAvatarPreview(av) {
             const preview = document.getElementById('avatar-preview');
             if (!preview) return;
-            if (av && av.startsWith('data:')) {
-                preview.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            if (av && (av.startsWith('data:') || av.startsWith('/'))) {
+                preview.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:contain;border-radius:50%;mix-blend-mode:screen;">`;
             } else {
                 preview.innerHTML = av || '🎲';
             }
         }
+
+        // Init preview with default avatar
+        _setAvatarPreview(selectedAvatar);
 
         document.querySelectorAll('.avatar-opt').forEach(btn => {
             btn.addEventListener('click', () => {

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="gm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0d070"/><stop offset="100%" stop-color="#8a5e10"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" rx="22" fill="#0f0a02"/>
+  <rect width="200" height="200" rx="22" fill="none" stroke="#3a2c0e" stroke-width="2"/>
+  <rect x="1" y="1" width="198" height="198" rx="21" fill="none" stroke="#f5d06030" stroke-width="0.8"/>
+  <g filter="url(#glow)">
+    <path d="M30 88 C30 48 58 36 100 36 C142 36 170 48 170 88 C170 124 148 148 124 154 C114 157 106 157 100 157 C94 157 86 157 76 154 C52 148 30 124 30 88Z" fill="url(#gm)"/>
+    <ellipse cx="68" cy="86" rx="20" ry="18" fill="#0f0a02"/>
+    <ellipse cx="132" cy="86" rx="20" ry="18" fill="#0f0a02"/>
+    <ellipse cx="62" cy="80" rx="8" ry="5" fill="white" opacity="0.12"/>
+    <path d="M82 126 Q100 134 118 126" fill="none" stroke="#8a5e10" stroke-width="3" stroke-linecap="round"/>
+    <line x1="30" y1="88" x2="10" y2="76" stroke="url(#gm)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="170" y1="88" x2="190" y2="76" stroke="url(#gm)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M30 88 C30 48 58 36 100 36 C142 36 170 48 170 88" fill="none" stroke="#f5d060" stroke-width="1" opacity="0.35"/>
+  </g>
+</svg>
