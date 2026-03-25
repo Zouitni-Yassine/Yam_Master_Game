@@ -105,7 +105,7 @@ const SocketClient = (() => {
     function createRoom() { if (socket) socket.emit('room.create'); }
     function joinRoom(code) { if (socket) socket.emit('room.join', { code }); }
     function userLogin(username, password) { if (socket) socket.emit('user.login', { username, password }); }
-    function userRegister(username, password, avatar) { if (socket) socket.emit('user.register', { username, password, avatar }); }
+    function userRegister(username, password, avatar, firstname, lastname, email, dob) { if (socket) socket.emit('user.register', { username, password, avatar, firstname, lastname, email, dob }); }
     function getRankingList() { if (socket) socket.emit('user.ranking.get'); }
 
     // ---- Register callbacks ----

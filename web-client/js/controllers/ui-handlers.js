@@ -24,27 +24,113 @@ const GameUIHandlers = {
 
         // Avatar selection
         let selectedAvatar = '🎲';
+
+        function _setAvatarPreview(av) {
+            const preview = document.getElementById('avatar-preview');
+            if (!preview) return;
+            if (av && av.startsWith('data:')) {
+                preview.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            } else {
+                preview.innerHTML = av || '🎲';
+            }
+        }
+
         document.querySelectorAll('.avatar-opt').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.avatar-opt').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedAvatar = btn.dataset.avatar;
+                _setAvatarPreview(selectedAvatar);
             });
         });
 
+        // Image upload
+        const fileInput = document.getElementById('avatar-file-input');
+        document.getElementById('btn-upload-avatar')?.addEventListener('click', () => fileInput?.click());
+        fileInput?.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    const c = document.createElement('canvas');
+                    c.width = 64; c.height = 64;
+                    c.getContext('2d').drawImage(img, 0, 0, 64, 64);
+                    selectedAvatar = c.toDataURL('image/jpeg', 0.82);
+                    _setAvatarPreview(selectedAvatar);
+                    // Deselect emoji buttons
+                    document.querySelectorAll('.avatar-opt').forEach(b => b.classList.remove('selected'));
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+            // Reset so same file can be re-selected
+            e.target.value = '';
+        });
+
+        // Password strength meter
+        document.getElementById('reg-password')?.addEventListener('input', e => {
+            const bar   = document.getElementById('pwd-strength-bar');
+            const label = document.getElementById('pwd-strength-label');
+            const val   = e.target.value;
+            let score = 0;
+            if (val.length >= 8)  score++;
+            if (val.length >= 12) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            const levels = [
+                { pct: '0%',   color: '#666',    text: '' },
+                { pct: '25%',  color: '#e74c3c', text: 'FAIBLE' },
+                { pct: '50%',  color: '#e67e22', text: 'MOYEN' },
+                { pct: '75%',  color: '#f1c40f', text: 'BON' },
+                { pct: '90%',  color: '#2ecc71', text: 'FORT' },
+                { pct: '100%', color: '#00e676', text: 'EXCELLENT' },
+            ];
+            const lv = levels[score] || levels[0];
+            bar.style.setProperty('--strength', lv.pct);
+            bar.style.setProperty('--strength-color', lv.color);
+            label.style.setProperty('--strength-color', lv.color);
+            label.textContent = lv.text;
+        });
+
         document.getElementById('btn-register').addEventListener('click', () => {
-            const u = document.getElementById('reg-username').value.trim();
-            const p = document.getElementById('reg-password').value;
-            if (!u || u.length < 2) { _loginError('Nom trop court (2 min)'); return; }
-            if (!p || p.length < 4) { _loginError('Mot de passe trop court (4 min)'); return; }
-            SocketClient.userRegister(u, p, selectedAvatar);
+            const firstname = document.getElementById('reg-firstname').value.trim();
+            const lastname  = document.getElementById('reg-lastname').value.trim();
+            const u         = document.getElementById('reg-username').value.trim();
+            const email     = document.getElementById('reg-email').value.trim();
+            const dob       = document.getElementById('reg-dob').value;
+            const p         = document.getElementById('reg-password').value;
+            const p2        = document.getElementById('reg-password-confirm').value;
+
+            if (!firstname || firstname.length < 1) { _loginError('Prénom requis'); return; }
+            if (!lastname  || lastname.length  < 1) { _loginError('Nom requis'); return; }
+            if (!u || u.length < 2) { _loginError('Pseudo trop court (2 min)'); return; }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { _loginError('Email invalide'); return; }
+            if (!dob) { _loginError('Date de naissance requise'); return; }
+            const age = (Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 3600 * 1000);
+            if (age < 13) { _loginError('Tu dois avoir au moins 13 ans'); return; }
+            if (!p || p.length < 8) { _loginError('Mot de passe trop court (8 min)'); return; }
+            if (p !== p2) { _loginError('Les mots de passe ne correspondent pas'); return; }
+
+            SocketClient.userRegister(u, p, selectedAvatar, firstname, lastname, email, dob);
         });
 
         function _loginError(msg) {
             const el = document.getElementById('login-error');
             el.textContent = msg;
             el.classList.remove('hidden');
-            gsap.from(el, { x: -8, duration: 0.3, ease: 'power2.out' });
+            gsap.killTweensOf(el);
+            gsap.fromTo(el,
+                { opacity: 1, y: -10 },
+                { opacity: 1, y: 0, duration: 0.25, ease: 'power2.out',
+                  onComplete: () => {
+                      gsap.to(el, { opacity: 0, y: -10, duration: 0.4, delay: 3,
+                          onComplete: () => el.classList.add('hidden') });
+                  }
+                }
+            );
         }
 
         // Enter key on login/register inputs
@@ -60,8 +146,31 @@ const GameUIHandlers = {
             SocketClient.getRankingList();
         });
 
+        // Rank filter buttons
+        document.querySelectorAll('.rank-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.rank-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                _rankFilter = btn.dataset.rank;
+                _renderLeaderboard();
+            });
+        });
+
         document.getElementById('btn-close-ranking').addEventListener('click', () => {
             document.getElementById('ranking-overlay').classList.add('hidden');
+        });
+
+        document.getElementById('btn-rank-info').addEventListener('click', () => {
+            document.getElementById('rank-info-overlay').classList.remove('hidden');
+        });
+
+        document.getElementById('btn-close-rank-info').addEventListener('click', () => {
+            document.getElementById('rank-info-overlay').classList.add('hidden');
+        });
+
+        document.getElementById('rank-info-overlay').addEventListener('click', e => {
+            if (e.target === document.getElementById('rank-info-overlay'))
+                document.getElementById('rank-info-overlay').classList.add('hidden');
         });
 
         // ---- Menu navigation ----

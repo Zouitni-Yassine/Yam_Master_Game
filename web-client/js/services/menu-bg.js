@@ -2,33 +2,28 @@ const MenuBg = (() => {
     let renderer, scene, camera, animId;
     const objects = [];
 
+    // Drag state
+    let dragObj = null;
+    const raycaster = new THREE.Raycaster();
+    const mouse     = new THREE.Vector2();
+    const dragPlane = new THREE.Plane();
+
     // ---- Playing card canvas texture ----
     function _makeCardTexture(suit) {
         const c = document.createElement('canvas');
         c.width = 128; c.height = 180;
         const ctx = c.getContext('2d');
-
         ctx.fillStyle = '#f0e8d4';
         if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(0, 0, 128, 180, 10); ctx.fill(); }
         else { ctx.fillRect(0, 0, 128, 180); }
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 2;
         if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(3, 3, 122, 174, 8); ctx.stroke(); }
-
         const isRed = suit === '♥' || suit === '♦';
         ctx.fillStyle = isRed ? '#c8201e' : '#0a0604';
-
-        ctx.font = 'bold 72px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 72px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(suit, 64, 96);
-
-        ctx.font = 'bold 20px serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
+        ctx.font = 'bold 20px serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
         ctx.fillText(suit, 8, 8);
-
         return new THREE.CanvasTexture(c);
     }
 
@@ -37,19 +32,76 @@ const MenuBg = (() => {
         const front = new THREE.MeshStandardMaterial({ map: _makeCardTexture(suit), roughness: 0.35 });
         const back  = new THREE.MeshStandardMaterial({ color: 0x0d0804, roughness: 0.3 });
         const side  = new THREE.MeshStandardMaterial({ color: 0xd4b896, roughness: 0.5 });
-        // BoxGeometry order: +x, -x, +y, -y, +z (front), -z (back)
         return new THREE.Mesh(geo, [side, side, side, side, front, back]);
     }
 
+    // Place object away from center (menu is in center ~400px wide)
     function _scatter(obj) {
-        obj.position.set(
-            (Math.random() - 0.5) * 85,
-            (Math.random() - 0.5) * 52,
-            (Math.random() - 0.5) * 20 - 4
-        );
-        obj.userData.initY  = obj.position.y;
+        let x, y;
+        do {
+            x = (Math.random() - 0.5) * 90;
+            y = (Math.random() - 0.5) * 55;
+        } while (Math.abs(x) < 20 && Math.abs(y) < 28);
+
+        // Push objects further back so they don't occlude the menu
+        const z = -12 - Math.random() * 18;
+        obj.position.set(x, y, z);
+        obj.userData.initY  = y;
         obj.userData.phase  = Math.random() * Math.PI * 2;
-        obj.userData.floatA = 1.0 + Math.random() * 1.4;
+        obj.userData.floatA = 0.8 + Math.random() * 1.0;
+        obj.userData.dragging = false;
+    }
+
+    function _updateMouse(e) {
+        mouse.set(
+            (e.clientX / window.innerWidth) * 2 - 1,
+            -(e.clientY / window.innerHeight) * 2 + 1
+        );
+    }
+
+    function _setupDrag(canvas) {
+        canvas.addEventListener('mousedown', e => {
+            _updateMouse(e);
+            raycaster.setFromCamera(mouse, camera);
+
+            const meshes = [];
+            objects.forEach(o => {
+                if (o.isMesh) meshes.push(o);
+                else o.traverse(c => { if (c.isMesh) meshes.push(c); });
+            });
+
+            const hits = raycaster.intersectObjects(meshes);
+            if (!hits.length) return;
+
+            // Find root object
+            let hit = hits[0].object;
+            while (hit.parent && !objects.includes(hit)) hit = hit.parent;
+            dragObj = hit;
+            dragPlane.set(new THREE.Vector3(0, 0, 1), -dragObj.position.z);
+            dragObj.userData.dragging = true;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (!dragObj) return;
+            _updateMouse(e);
+            raycaster.setFromCamera(mouse, camera);
+            const target = new THREE.Vector3();
+            raycaster.ray.intersectPlane(dragPlane, target);
+            dragObj.position.x = target.x;
+            dragObj.position.y = target.y;
+        });
+
+        const _release = () => {
+            if (dragObj) {
+                dragObj.userData.initY = dragObj.position.y;
+                dragObj.userData.dragging = false;
+                dragObj = null;
+                canvas.style.cursor = 'default';
+            }
+        };
+        canvas.addEventListener('mouseup', _release);
+        canvas.addEventListener('mouseleave', _release);
     }
 
     function init() {
@@ -110,6 +162,7 @@ const MenuBg = (() => {
             scene.add(card); objects.push(card);
         }
 
+        _setupDrag(canvas);
         window.addEventListener('resize', _onResize);
         _animate();
     }
@@ -119,6 +172,7 @@ const MenuBg = (() => {
         animId = requestAnimationFrame(_animate);
         t += 0.005;
         objects.forEach(m => {
+            if (m.userData.dragging) return;
             if (m.userData.rx) m.rotation.x += m.userData.rx;
             if (m.userData.ry) m.rotation.y += m.userData.ry;
             if (m.userData.rz) m.rotation.z += m.userData.rz;

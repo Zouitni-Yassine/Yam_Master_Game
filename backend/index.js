@@ -30,7 +30,7 @@ let rankings = {};     // socketId -> { score, wins, losses }
 let socketToUser = {}; // socketId -> username
 
 function getRanking(socketId) {
-    if (!rankings[socketId]) rankings[socketId] = { score: 1000, wins: 0, losses: 0 };
+    if (!rankings[socketId]) rankings[socketId] = { score: 0, wins: 0, losses: 0 };
     return rankings[socketId];
 }
 
@@ -265,18 +265,29 @@ const newPlayerInQueue = (socket) => {
 io.on('connection', socket => {
     console.log(`[${socket.id}] connected`);
 
-    socket.on('user.register', async ({ username, password, avatar }) => {
-        const name = username.trim();
-        if (!name || name.length < 2) { socket.emit('user.error', { message: 'Nom trop court (2 min)' }); return; }
-        if (!password || password.length < 4) { socket.emit('user.error', { message: 'Mot de passe trop court (4 min)' }); return; }
-        const existing = await usersCol.findOne({ username: name });
-        if (existing) { socket.emit('user.error', { message: 'Nom déjà utilisé' }); return; }
+    socket.on('user.register', async ({ username, password, avatar, firstname, lastname, email, dob }) => {
+        const name = (username || '').trim();
+        if (!name || name.length < 2) { socket.emit('user.error', { message: 'Pseudo trop court (2 min)' }); return; }
+        if (!password || password.length < 8) { socket.emit('user.error', { message: 'Mot de passe trop court (8 min)' }); return; }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { socket.emit('user.error', { message: 'Email invalide' }); return; }
+        const existingUser  = await usersCol.findOne({ username: name });
+        if (existingUser) { socket.emit('user.error', { message: 'Pseudo déjà utilisé' }); return; }
+        const existingEmail = await usersCol.findOne({ email: email.toLowerCase() });
+        if (existingEmail) { socket.emit('user.error', { message: 'Email déjà utilisé' }); return; }
         const av = avatar || '🎲';
-        const user = { username: name, password: hashPwd(password), score: 1000, wins: 0, losses: 0, avatar: av };
+        const user = {
+            username: name,
+            password: hashPwd(password),
+            firstname: (firstname || '').trim(),
+            lastname:  (lastname  || '').trim(),
+            email:     email.toLowerCase(),
+            dob:       dob || null,
+            score: 0, wins: 0, losses: 0, avatar: av
+        };
         await usersCol.insertOne(user);
         socketToUser[socket.id] = { username: name, avatar: av };
-        rankings[socket.id] = { score: 1000, wins: 0, losses: 0 };
-        socket.emit('user.logged', { username: name, score: 1000, wins: 0, losses: 0, avatar: av });
+        rankings[socket.id] = { score: 0, wins: 0, losses: 0 };
+        socket.emit('user.logged', { username: name, score: 0, wins: 0, losses: 0, avatar: av });
         await broadcastRanking();
     });
 

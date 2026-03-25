@@ -81,6 +81,7 @@
         </div>
 
         <!-- Login Overlay -->
+        <p id="login-error" class="login-error hidden"></p>
         <div id="login-overlay">
             <canvas id="login-canvas"></canvas>
             <div class="login-card">
@@ -111,6 +112,7 @@
                 </div>
 
                 <div class="login-form hidden" id="register-form">
+                    <!-- Avatar -->
                     <div class="avatar-picker-wrap">
                         <div class="avatar-picker-label">CHOISIR UN AVATAR</div>
                         <div class="avatar-preview" id="avatar-preview">🎲</div>
@@ -128,21 +130,59 @@
                             <button type="button" class="avatar-opt" data-avatar="🦁">🦁</button>
                         </div>
                     </div>
-                    <div class="login-field-wrap">
-                        <span class="field-icon">👤</span>
-                        <input id="reg-username" class="login-input" type="text" placeholder="Choisir un pseudo" maxlength="20" autocomplete="off">
+
+                    <!-- Prénom + Nom -->
+                    <div class="reg-row">
+                        <div class="login-field-wrap">
+                            <span class="field-icon">✏️</span>
+                            <input id="reg-firstname" class="login-input" type="text" placeholder="Prénom" maxlength="30" autocomplete="given-name">
+                        </div>
+                        <div class="login-field-wrap">
+                            <span class="field-icon">✏️</span>
+                            <input id="reg-lastname" class="login-input" type="text" placeholder="Nom" maxlength="30" autocomplete="family-name">
+                        </div>
                     </div>
+
+                    <!-- Username -->
                     <div class="login-field-wrap">
-                        <span class="field-icon">🔒</span>
-                        <input id="reg-password" class="login-input" type="password" placeholder="Choisir un mot de passe" maxlength="40">
+                        <span class="field-icon">🎮</span>
+                        <input id="reg-username" class="login-input" type="text" placeholder="Pseudo (affiché en jeu)" maxlength="20" autocomplete="off">
                     </div>
+
+                    <!-- Email + Date -->
+                    <div class="reg-row">
+                        <div class="login-field-wrap">
+                            <span class="field-icon">✉️</span>
+                            <input id="reg-email" class="login-input" type="email" placeholder="Email" maxlength="80" autocomplete="email">
+                        </div>
+                        <div class="login-field-wrap">
+                            <span class="field-icon">🎂</span>
+                            <input id="reg-dob" class="login-input" type="date" placeholder="Date de naissance">
+                        </div>
+                    </div>
+
+                    <!-- Mot de passe + Confirmer -->
+                    <div class="reg-row">
+                        <div class="login-field-wrap">
+                            <span class="field-icon">🔒</span>
+                            <input id="reg-password" class="login-input" type="password" placeholder="Mot de passe (min. 8)" maxlength="40">
+                        </div>
+                        <div class="login-field-wrap">
+                            <span class="field-icon">🔒</span>
+                            <input id="reg-password-confirm" class="login-input" type="password" placeholder="Confirmer" maxlength="40">
+                        </div>
+                    </div>
+                    <div class="pwd-strength-wrap">
+                        <div class="pwd-strength-bar" id="pwd-strength-bar"></div>
+                        <span class="pwd-strength-label" id="pwd-strength-label"></span>
+                    </div>
+
                     <button id="btn-register" class="login-btn">
                         <span>CRÉER MON COMPTE</span>
                         <span class="btn-arrow">→</span>
                     </button>
                 </div>
 
-                <p id="login-error" class="login-error hidden"></p>
             </div>
         </div>
 
@@ -233,11 +273,107 @@
         <!-- Ranking overlay -->
         <div id="ranking-overlay" class="hidden">
           <div class="ranking-panel">
+
+            <!-- Header -->
             <div class="ranking-header">
-              <span>🏆 CLASSEMENT</span>
-              <button id="btn-close-ranking" class="ranking-close">✕</button>
+              <span class="ranking-title">LEADERBOARD</span>
+              <div class="ranking-header-actions">
+                <button id="btn-rank-info" class="ranking-info-btn" title="Informations sur les rangs">!</button>
+                <button id="btn-close-ranking" class="ranking-close">✕</button>
+              </div>
             </div>
+
+            <!-- Rank filter bar -->
+            <div class="rank-filter-bar">
+              <button class="rank-filter-btn active" data-rank="all">TOUS</button>
+              <button class="rank-filter-btn" data-rank="Iron">
+                <img src="/rank/valorant-iron-3-icon_svgstack_com_71171774423564.svg">
+                <span>Iron</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Bronze">
+                <img src="/rank/valorant-bronze-3-icon_svgstack_com_71051774423583.svg">
+                <span>Bronze</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Silver">
+                <img src="/rank/valorant-silver-3-icon_svgstack_com_71241774423610.svg">
+                <span>Silver</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Gold">
+                <img src="/rank/valorant-gold-3-icon_svgstack_com_71111774423628.svg">
+                <span>Gold</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Platinum">
+                <img src="/rank/valorant-platinum-3-icon_svgstack_com_71201774423640.svg">
+                <span>Plat</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Diamond">
+                <img src="/rank/valorant-diamond-3-icon_svgstack_com_71081774423651.svg">
+                <span>Diamond</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Ascendant">
+                <img src="/rank/valorant-ascendant-3-icon_svgstack_com_71021774423660.svg">
+                <span>Ascendant</span>
+              </button>
+              <button class="rank-filter-btn" data-rank="Immortal">
+                <img src="/rank/valorant-immortal-3-icon_svgstack_com_71141774424245.svg">
+                <span>Immortal</span>
+              </button>
+            </div>
+
             <div id="ranking-list" class="ranking-list"></div>
+          </div>
+        </div>
+
+        <!-- Rank info popup -->
+        <div id="rank-info-overlay" class="hidden">
+          <div class="rank-info-panel">
+            <div class="rank-info-header">
+              <span>SYSTÈME DE RANGS</span>
+              <button id="btn-close-rank-info" class="ranking-close">✕</button>
+            </div>
+            <div class="rank-info-grid">
+              <div class="rank-info-item">
+                <img src="/rank/valorant-iron-3-icon_svgstack_com_71171774423564.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#9eaab5">Iron</span>
+                <span class="rank-info-pts">$0</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-bronze-3-icon_svgstack_com_71051774423583.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#cd7f32">Bronze</span>
+                <span class="rank-info-pts">$500</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-silver-3-icon_svgstack_com_71241774423610.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#b0b8c1">Silver</span>
+                <span class="rank-info-pts">$1,500</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-gold-3-icon_svgstack_com_71111774423628.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#ffd700">Gold</span>
+                <span class="rank-info-pts">$4,000</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-platinum-3-icon_svgstack_com_71201774423640.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#70c8c8">Platinum</span>
+                <span class="rank-info-pts">$10,000</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-diamond-3-icon_svgstack_com_71081774423651.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#a29bfe">Diamond</span>
+                <span class="rank-info-pts">$25,000</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-ascendant-3-icon_svgstack_com_71021774423660.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#00e676">Ascendant</span>
+                <span class="rank-info-pts">$50,000</span>
+              </div>
+              <div class="rank-info-item">
+                <img src="/rank/valorant-immortal-3-icon_svgstack_com_71141774424245.svg" class="rank-info-img">
+                <span class="rank-info-name" style="color:#ff4757">Immortal</span>
+                <span class="rank-info-pts">$100,000</span>
+              </div>
+            </div>
+            <p class="rank-info-sub">+$500 par victoire · −$300 par défaite</p>
           </div>
         </div>
     </div>

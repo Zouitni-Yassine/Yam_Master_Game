@@ -1,3 +1,87 @@
+const RANKS = [
+    { name: 'Iron',      min: 0,      img: '/rank/valorant-iron-3-icon_svgstack_com_71171774423564.svg',      color: '#9eaab5' },
+    { name: 'Bronze',    min: 500,    img: '/rank/valorant-bronze-3-icon_svgstack_com_71051774423583.svg',    color: '#cd7f32' },
+    { name: 'Silver',    min: 1500,   img: '/rank/valorant-silver-3-icon_svgstack_com_71241774423610.svg',    color: '#b0b8c1' },
+    { name: 'Gold',      min: 4000,   img: '/rank/valorant-gold-3-icon_svgstack_com_71111774423628.svg',      color: '#ffd700' },
+    { name: 'Platinum',  min: 10000,  img: '/rank/valorant-platinum-3-icon_svgstack_com_71201774423640.svg',  color: '#70c8c8' },
+    { name: 'Diamond',   min: 25000,  img: '/rank/valorant-diamond-3-icon_svgstack_com_71081774423651.svg',   color: '#a29bfe' },
+    { name: 'Ascendant', min: 50000,  img: '/rank/valorant-ascendant-3-icon_svgstack_com_71021774423660.svg', color: '#00e676' },
+    { name: 'Immortal',  min: 100000, img: '/rank/valorant-immortal-3-icon_svgstack_com_71141774424245.svg',  color: '#ff4757' },
+];
+
+function getRank(score) {
+    let rank = RANKS[0];
+    for (const r of RANKS) { if (score >= r.min) rank = r; else break; }
+    return rank;
+}
+
+function rankHtml(rank, size = 22) {
+    return `<img src="${rank.img}" class="rank-img" style="width:${size}px;height:${size}px" title="${rank.name}">`;
+}
+
+function fmtScore(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(n % 1000000 === 0 ? 0 : 1) + 'M';
+    if (n >= 1000)    return '$' + (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'K';
+    return '$' + n.toLocaleString();
+}
+
+// ---- Leaderboard state ----
+let _rankingData  = [];
+let _rankFilter   = 'all';
+
+function _renderLeaderboard() {
+    const list = document.getElementById('ranking-list');
+    if (!list) return;
+
+    const filtered = _rankFilter === 'all'
+        ? _rankingData
+        : _rankingData.filter(p => getRank(p.score || 0).name === _rankFilter);
+
+    const colHeader = `<div class="ranking-cols-header">
+        <span class="rcol-num-h">#</span>
+        <span class="rcol-rank-h">RANG</span>
+        <span class="rcol-player-h">JOUEUR</span>
+        <span class="rcol-score-h">SOLDE</span>
+        <span class="rcol-record-h">V · D</span>
+    </div>`;
+
+    if (!filtered.length) {
+        list.innerHTML = colHeader + `<div class="ranking-empty">Aucun joueur dans ce rang</div>`;
+        return;
+    }
+
+    const rows = filtered.map(p => {
+        const globalPos = _rankingData.indexOf(p) + 1;
+        const score = p.score || 0;
+        const rank  = getRank(score);
+        const av    = p.avatar || '🎲';
+        const avHtml = av.startsWith('data:') ? `<img src="${av}">` : av;
+        const rowCls = globalPos === 1 ? 'ranking-row top-1' : globalPos <= 3 ? 'ranking-row top-3' : 'ranking-row';
+        const numCls = globalPos === 1 ? 'rcol-num pos-1' : globalPos === 2 ? 'rcol-num pos-2' : globalPos === 3 ? 'rcol-num pos-3' : 'rcol-num';
+        return `<div class="${rowCls}">
+            <span class="${numCls}">${globalPos}</span>
+            <span class="rcol-rank"><img src="${rank.img}" title="${rank.name}"></span>
+            <div class="rcol-player">
+                <div class="row-avatar">${avHtml}</div>
+                <span class="row-username">${p.username}</span>
+            </div>
+            <span class="rcol-score">$${score.toLocaleString()}</span>
+            <span class="rcol-record">${p.wins}V · ${p.losses}D</span>
+        </div>`;
+    }).join('');
+
+    list.innerHTML = colHeader + rows;
+}
+
+function renderAvatar(el, av) {
+    if (!el) return;
+    if (av && av.startsWith('data:')) {
+        el.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">`;
+    } else {
+        el.textContent = av || '🎲';
+    }
+}
+
 function showDollarGain(text) {
     const el = document.createElement('div');
     el.className = 'dollar-gain';
@@ -45,22 +129,10 @@ const GameSocketHandlers = {
             ChipSystem.setPlayerSide(isPlayer1);
 
             // Update in-game badges with real names/avatars
-            if (data.playerName) {
-                const el = document.getElementById('player-badge-name');
-                if (el) el.textContent = data.playerName;
-            }
-            if (data.playerAvatar) {
-                const el = document.getElementById('player-badge-avatar');
-                if (el) el.textContent = data.playerAvatar;
-            }
-            if (data.opponentName) {
-                const el = document.getElementById('opponent-badge-name');
-                if (el) el.textContent = data.opponentName;
-            }
-            if (data.opponentAvatar) {
-                const el = document.getElementById('opponent-badge-avatar');
-                if (el) el.textContent = data.opponentAvatar;
-            }
+            if (data.playerName)   { const el = document.getElementById('player-badge-name');   if (el) el.textContent = data.playerName; }
+            if (data.opponentName) { const el = document.getElementById('opponent-badge-name'); if (el) el.textContent = data.opponentName; }
+            renderAvatar(document.getElementById('player-badge-avatar'),   data.playerAvatar);
+            renderAvatar(document.getElementById('opponent-badge-avatar'), data.opponentAvatar);
 
             UIManager.showQueueOverlay(false);
             DiceSystem.showDice(true);
@@ -198,8 +270,10 @@ const GameSocketHandlers = {
         });
 
         SocketClient.onRankingUpdate(data => {
+            const score  = data.score || 0;
+            const rank   = getRank(score);
             const scoreEl = document.getElementById('menu-player-score');
-            if (scoreEl && data.score !== undefined) scoreEl.textContent = `$${data.score.toLocaleString()}`;
+            if (scoreEl) scoreEl.innerHTML = `${rankHtml(rank, 20)} <span style="color:${rank.color}">${rank.name}</span> · ${fmtScore(score)}`;
         });
 
         SocketClient.onUserLogged(data => {
@@ -215,12 +289,13 @@ const GameSocketHandlers = {
 
             // Avatar in menu chip
             const av = data.avatar || '🎲';
-            const menuAv = document.getElementById('menu-avatar-display');
-            if (menuAv) menuAv.textContent = av;
+            renderAvatar(document.getElementById('menu-avatar-display'), av);
 
-            // Score in menu chip
+            // Score + rank in menu chip
+            const score = data.score || 0;
+            const rank  = getRank(score);
             const scoreEl = document.getElementById('menu-player-score');
-            if (scoreEl) scoreEl.textContent = `$${(data.score || 0).toLocaleString()}`;
+            if (scoreEl) scoreEl.innerHTML = `${rankHtml(rank, 20)} <span style="color:${rank.color}">${rank.name}</span> · ${fmtScore(score)}`;
 
             // Init menu background
             if (typeof MenuBg !== 'undefined') MenuBg.init();
@@ -237,14 +312,8 @@ const GameSocketHandlers = {
         });
 
         SocketClient.onRankingList(data => {
-            const list = document.getElementById('ranking-list');
-            if (!list) return;
-            list.innerHTML = data.map((p, i) => {
-                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
-                const cls = i < 3 ? 'ranking-row top' : 'ranking-row';
-                const av = p.avatar || '🎲';
-                return `<div class="${cls}"><span class="ranking-pos">${medal}</span><span class="ranking-avatar">${av}</span><span class="ranking-name">${p.username}</span><span class="ranking-score">$${(p.score||0).toLocaleString()}</span><span class="ranking-record">${p.wins}V · ${p.losses}D</span></div>`;
-            }).join('');
+            _rankingData = data;
+            _renderLeaderboard();
         });
     }
 };
