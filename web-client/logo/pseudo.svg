@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" fill="#0d0a04" rx="16"/>
+  <g transform="translate(100,95)" filter="url(#glow)" stroke="#d4a843" stroke-width="2" fill="none">
+    <path d="M-40,-28 Q-42,-54 0,-52 Q42,-54 40,-28 Q36,8 18,14 Q8,20 0,20 Q-8,20 -18,14 Q-36,8 -40,-28Z"/>
+    <ellipse cx="-16" cy="-26" rx="9" ry="7"/>
+    <ellipse cx="16" cy="-26" rx="9" ry="7"/>
+    <line x1="-40" y1="-26" x2="-58" y2="-18"/>
+    <line x1="40" y1="-26" x2="58" y2="-18"/>
+  </g>
+  <text x="100" y="185" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#c8a84b" letter-spacing="2">PSEUDO</text>
+</svg>

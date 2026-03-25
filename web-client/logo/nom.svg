@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" fill="#0d0a04" rx="16"/>
+  <g transform="translate(100,95)" filter="url(#glow)" stroke="#d4a843" stroke-width="2" fill="none">
+    <circle cx="-18" cy="-22" r="22"/>
+    <circle cx="18" cy="-22" r="22" stroke="#8a6e2a" stroke-width="1.5"/>
+    <path d="M-60,60 Q-48,16 -28,8"/>
+    <path d="M28,8 Q48,16 60,60" stroke="#8a6e2a" stroke-width="1.5"/>
+  </g>
+  <text x="100" y="185" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#c8a84b" letter-spacing="2">NOM</text>
+</svg>

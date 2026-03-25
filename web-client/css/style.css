@@ -526,14 +526,14 @@ body {
 .menu-btn.small { width: auto; padding: 12px 16px; white-space: nowrap; flex-shrink: 0; }
 
 .menu-btn.difficulty { align-items: center; }
-.menu-btn.difficulty .diff-logo { width: 36px; height: 36px; object-fit: contain; filter: brightness(0.85) sepia(0.3); flex-shrink: 0; }
+.menu-btn.difficulty .diff-logo { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; mix-blend-mode: screen; }
 .menu-btn.difficulty .diff-info { display: flex; flex-direction: column; gap: 2px; }
 .menu-btn.difficulty .diff-name { font-size: 0.85rem; color: #e8d5b0; }
 .menu-btn.difficulty .diff-desc { font-size: 0.65rem; color: #6a5a4a; font-family: 'Roboto', sans-serif; letter-spacing: 0; font-weight: 400; }
 .menu-btn.hard { border-color: rgba(200, 32, 30, 0.4); }
 .menu-btn.hard:hover { border-color: rgba(200, 32, 30, 0.8); background: rgba(200, 32, 30, 0.08); }
 
-.mbtn-logo { width: 32px; height: 32px; object-fit: contain; filter: brightness(0.85) sepia(0.3); flex-shrink: 0; }
+.mbtn-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; mix-blend-mode: screen; }
 .mbtn-text { flex: 1; }
 
 .room-code {
@@ -716,29 +716,42 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #040201;
+    background: #040201 url('/logo/lucid-origin_Realistic_luxury_casino_background_cinematic_lighting_warm_golden_tones_poker_ta-0.jpg') center/cover no-repeat;
 }
 
-#login-canvas {
+#login-overlay::after {
+    content: '';
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.75) 100%);
     pointer-events: none;
 }
 
+#login-canvas { display: none; }
+
 .login-card {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     width: 560px;
     max-height: 92vh;
     overflow-y: auto;
     padding: 36px 36px 32px;
-    background: linear-gradient(145deg, rgba(20,14,8,0.98), rgba(10,7,4,0.98));
-    border: 1px solid rgba(212,164,76,0.35);
-    border-radius: 4px;
-    box-shadow: 0 0 60px rgba(212,164,76,0.08), 0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(212,164,76,0.15);
-    overflow: hidden;
+    background: linear-gradient(145deg, rgba(8,5,2,0.82), rgba(15,10,5,0.88));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(212,164,76,0.45);
+    border-radius: 6px;
+    box-shadow:
+        0 0 0 1px rgba(212,164,76,0.1),
+        0 0 40px rgba(212,164,76,0.12),
+        0 40px 80px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(212,164,76,0.2);
+    animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardEnter {
+    from { opacity: 0; transform: translateY(28px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
 }
 
 .login-card::before {
@@ -746,12 +759,13 @@ body {
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #d4a44c, transparent);
+    background: linear-gradient(90deg, transparent, #f5d78e, #d4a44c, #f5d78e, transparent);
+    box-shadow: 0 0 12px rgba(212,164,76,0.6);
 }
 
 .login-brand {
     text-align: center;
-    margin-bottom: 36px;
+    margin-bottom: 28px;
 }
 
 .login-brand-icon {
@@ -825,6 +839,16 @@ body {
     align-items: center;
 }
 
+.field-icon-img {
+    position: absolute;
+    left: 10px;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    pointer-events: none;
+    mix-blend-mode: screen;
+}
+
 .field-icon {
     position: absolute;
     left: 14px;
@@ -835,7 +859,7 @@ body {
 
 .login-input {
     width: 100%;
-    padding: 11px 14px 11px 38px;
+    padding: 11px 14px 11px 42px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(212,164,76,0.2);
     border-radius: 3px;

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" fill="#0d0a04" rx="16"/>
+  <g transform="translate(100,100)" filter="url(#glow)" stroke="#d4a843" stroke-width="2" fill="none">
+    <circle cx="0" cy="-20" r="28"/>
+    <path d="M-50,70 Q-40,20 -18,12 Q-8,8 0,8 Q8,8 18,12 Q40,20 50,70"/>
+  </g>
+  <text x="100" y="185" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#c8a84b" letter-spacing="2">PRÉNOM</text>
+</svg>
