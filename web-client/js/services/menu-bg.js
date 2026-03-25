@@ -29,26 +29,34 @@ const MenuBg = (() => {
 
     function _makeCard(suit) {
         const geo = new THREE.BoxGeometry(2.8, 3.8, 0.07);
-        const front = new THREE.MeshStandardMaterial({ map: _makeCardTexture(suit), roughness: 0.35 });
-        const back  = new THREE.MeshStandardMaterial({ color: 0x0d0804, roughness: 0.3 });
-        const side  = new THREE.MeshStandardMaterial({ color: 0xd4b896, roughness: 0.5 });
-        return new THREE.Mesh(geo, [side, side, side, side, front, back]);
+        const tex  = _makeCardTexture(suit);
+        const face = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.35 });
+        const side = new THREE.MeshStandardMaterial({ color: 0xd4b896, roughness: 0.5 });
+        return new THREE.Mesh(geo, [side, side, side, side, face, face]);
     }
 
-    // Place object away from center (menu is in center ~400px wide)
-    function _scatter(obj) {
-        let x, y;
-        do {
-            x = (Math.random() - 0.5) * 90;
-            y = (Math.random() - 0.5) * 55;
-        } while (Math.abs(x) < 20 && Math.abs(y) < 28);
+    let _zoneIdx = 0;
+    const _placed = []; // positions déjà placées pour éviter les chevauchements
 
-        // Push objects further back so they don't occlude the menu
-        const z = -12 - Math.random() * 18;
+    function _scatter(obj) {
+        const side = (_zoneIdx % 2 === 0) ? -1 : 1;
+        _zoneIdx++;
+        const MIN_DIST = 9; // distance minimale entre objets
+        let x, y, attempts = 0;
+        do {
+            x = side * (26 + Math.random() * 20);
+            y = (Math.random() - 0.5) * 44;
+            attempts++;
+        } while (
+            attempts < 40 &&
+            _placed.some(p => Math.hypot(p.x - x, p.y - y) < MIN_DIST)
+        );
+        _placed.push({ x, y });
+        const z = -12 - Math.random() * 16;
         obj.position.set(x, y, z);
         obj.userData.initY  = y;
         obj.userData.phase  = Math.random() * Math.PI * 2;
-        obj.userData.floatA = 0.8 + Math.random() * 1.0;
+        obj.userData.floatA = 0.5 + Math.random() * 0.7;
         obj.userData.dragging = false;
     }
 
@@ -116,14 +124,14 @@ const MenuBg = (() => {
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
         camera.position.set(0, 0, 35);
 
-        scene.add(new THREE.AmbientLight(0xffeedd, 0.55));
-        const pt1 = new THREE.PointLight(0xd4a44c, 2.5, 100); pt1.position.set(15, 20, 25); scene.add(pt1);
-        const pt2 = new THREE.PointLight(0xc8201e, 1.2, 70);  pt2.position.set(-20, -10, 20); scene.add(pt2);
-        const pt3 = new THREE.PointLight(0xffffff, 0.9, 60);  pt3.position.set(0, 5, 30); scene.add(pt3);
+        scene.add(new THREE.AmbientLight(0xffeedd, 0.4));
+        const pt1 = new THREE.PointLight(0xd4a44c, 1.8, 100); pt1.position.set(15, 20, 25); scene.add(pt1);
+        const pt2 = new THREE.PointLight(0xc8201e, 0.9, 70);  pt2.position.set(-20, -10, 20); scene.add(pt2);
+        const pt3 = new THREE.PointLight(0xffffff, 0.6, 60);  pt3.position.set(0, 5, 30); scene.add(pt3);
 
         // ---- Dice (8) ----
         if (typeof DiceGeometry !== 'undefined') {
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 5; i++) {
                 const die = DiceGeometry.createMesh(0);
                 die.scale.setScalar(1.4 + Math.random() * 2.4);
                 _scatter(die);
@@ -137,8 +145,8 @@ const MenuBg = (() => {
 
         // ---- Chips (10) ----
         if (typeof ChipModel !== 'undefined') {
-            const colors = [0xc8201e, 0x111827, 0x1565c0, 0x2e7d32, 0xd4a44c, 0x6a0dad, 0xc8201e, 0x111827, 0x1565c0, 0x2e7d32];
-            for (let i = 0; i < 10; i++) {
+            const colors = [0xc8201e, 0x111827, 0x1565c0, 0x2e7d32, 0xd4a44c, 0x6a0dad];
+            for (let i = 0; i < 6; i++) {
                 const chip = ChipModel.make(colors[i]);
                 chip.scale.setScalar(9 + Math.random() * 12);
                 _scatter(chip);
@@ -150,8 +158,8 @@ const MenuBg = (() => {
         }
 
         // ---- Cards (7) ----
-        const suits = ['♠', '♥', '♦', '♣', '♠', '♥', '♦'];
-        for (let i = 0; i < 7; i++) {
+        const suits = ['♠', '♥', '♦', '♣', '♥'];
+        for (let i = 0; i < 5; i++) {
             const card = _makeCard(suits[i]);
             _scatter(card);
             card.rotation.z = (Math.random() - 0.5) * 1.0;
