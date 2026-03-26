@@ -1578,8 +1578,8 @@ body {
 .rules-tab-content { display: none; flex-direction: column; gap: 20px; }
 .rules-tab-content.active { display: flex; }
 
-/* ---- Rules login button ---- */
-#btn-rules-login {
+/* ---- Rules button (login + menu) ---- */
+.rules-login-btn {
     position: absolute;
     bottom: 28px;
     left: 32px;
@@ -1596,7 +1596,7 @@ body {
     z-index: 5;
     transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
-#btn-rules-login:hover {
+.rules-login-btn:hover {
     border-color: #c9962a;
     color: #f0c040;
     box-shadow: 0 0 16px rgba(201,150,42,0.2);
