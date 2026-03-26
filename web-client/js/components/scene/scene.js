@@ -3,14 +3,14 @@ const CasinoScene = (() => {
 
     function init(canvas) {
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x080503);
-        scene.fog = new THREE.FogExp2(0x080503, 0.045);
+        scene.background = null;
 
-        camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 10, 8);
+        camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 11, 9.5);
         camera.lookAt(0, 0, 0);
 
-        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setClearColor(0x000000, 0);
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;

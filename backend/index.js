@@ -65,8 +65,15 @@ const updateClientsViewGrid = (game) => {
     }, 200);
 };
 
+// ---- Score deltas based on win type and rank ----
+function getScoreDeltas(winType, loserScore) {
+    if (winType === 'line5') return { winGain: 1000, lossAmount: 500 };
+    const lossAmount = loserScore < 4000 ? 200 : 500; // Iron/Bronze/Silver = -200, Gold+ = -500
+    return { winGain: 550, lossAmount };
+}
+
 // ---- End game ----
-const endGame = async (gameIndex, winnerKey) => {
+const endGame = async (gameIndex, winnerKey, winType = 'score') => {
     const game = games[gameIndex];
     if (!game || game.ended) return;
     game.ended = true;
@@ -76,12 +83,18 @@ const endGame = async (gameIndex, winnerKey) => {
     const winnerSocket = p1IsWinner ? game.player1Socket : game.player2Socket;
     const loserSocket  = p1IsWinner ? game.player2Socket : game.player1Socket;
 
-    if (!game.isBot || winnerSocket.id !== game.botSocketId) {
-        getRanking(winnerSocket.id).score += 500;
+    // Ranking only applies to: online games OR hard bot games
+    const rankingEnabled = !game.isBot || game.botDifficulty === 'hard';
+
+    const loserCurrentScore = getRanking(loserSocket.id).score;
+    const { winGain, lossAmount } = getScoreDeltas(winType, loserCurrentScore);
+
+    if (rankingEnabled && (!game.isBot || winnerSocket.id !== game.botSocketId)) {
+        getRanking(winnerSocket.id).score += winGain;
         getRanking(winnerSocket.id).wins++;
     }
-    if (!game.isBot || loserSocket.id !== game.botSocketId) {
-        getRanking(loserSocket.id).score = Math.max(0, getRanking(loserSocket.id).score - 300);
+    if (rankingEnabled && (!game.isBot || loserSocket.id !== game.botSocketId)) {
+        getRanking(loserSocket.id).score = Math.max(0, getRanking(loserSocket.id).score - lossAmount);
         getRanking(loserSocket.id).losses++;
     }
 
@@ -104,12 +117,12 @@ const checkWinner = async (gameIndex) => {
     const game = games[gameIndex];
     const scores = GameService.grid.computeScores(game.gameState.grid);
     const winner = scores['player:1'].winner ? 'player:1' : (scores['player:2'].winner ? 'player:2' : null);
-    if (winner) { await endGame(gameIndex, winner); return; }
+    if (winner) { await endGame(gameIndex, winner, 'line5'); return; }
     let placed = 0;
     game.gameState.grid.forEach(row => row.forEach(cell => { if (cell.owner) placed++; }));
     if (placed >= 24) {
         const w = scores['player:1'].score >= scores['player:2'].score ? 'player:1' : 'player:2';
-        await endGame(gameIndex, w);
+        await endGame(gameIndex, w, 'score');
     }
 };
 
@@ -346,8 +359,9 @@ io.on('connection', socket => {
         games[gameIndex].gameState.deck.dices = GameService.dices.roll(deck.dices);
         games[gameIndex].gameState.deck.rollsCounter++;
         const dices = games[gameIndex].gameState.deck.dices;
-        const isSec = games[gameIndex].gameState.deck.rollsCounter === 2;
-        games[gameIndex].gameState.choices.availableChoices = GameService.choices.findCombinations(dices, false, isSec);
+        const isSec   = games[gameIndex].gameState.deck.rollsCounter === 2;
+        const isDefi  = games[gameIndex].gameState.choices.isDefi;
+        games[gameIndex].gameState.choices.availableChoices = GameService.choices.findCombinations(dices, isDefi, isSec);
         if (games[gameIndex].gameState.deck.rollsCounter > games[gameIndex].gameState.deck.rollsMaximum) {
             games[gameIndex].gameState.deck.dices = GameService.dices.lockEveryDice(dices);
             if (games[gameIndex].gameState.choices.availableChoices.length === 0) {
@@ -357,6 +371,18 @@ io.on('connection', socket => {
         }
         updateClientsViewDecks(games[gameIndex]);
         updateClientsViewChoices(games[gameIndex]);
+    });
+
+    socket.on('game.defi.declare', () => {
+        const gameIndex = GameService.utils.findGameIndexBySocketId(games, socket.id);
+        if (gameIndex === -1) return;
+        const game = games[gameIndex];
+        const playerKey = game.player1Socket.id === socket.id ? 'player:1' : 'player:2';
+        if (game.gameState.currentTurn !== playerKey) return;
+        if (game.gameState.deck.rollsCounter !== 2) return;
+        if (game.gameState.choices.isDefi) return;
+        game.gameState.choices.isDefi = true;
+        updateClientsViewChoices(game);
     });
 
     socket.on('game.dices.lock', (idDice) => {

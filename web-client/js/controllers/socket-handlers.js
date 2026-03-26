@@ -135,6 +135,7 @@ const GameSocketHandlers = {
             renderAvatar(document.getElementById('opponent-badge-avatar'), data.opponentAvatar);
 
             UIManager.showQueueOverlay(false);
+            document.getElementById('game-bg').style.display = 'block';
             DiceSystem.showDice(true);
             Animations.showDiceEntry(DiceSystem.getDiceMeshes());
         });
@@ -150,6 +151,7 @@ const GameSocketHandlers = {
                 UIManager.setTurnIndicator(state.isMyTurn);
                 DiceSystem.setPlayerTurn(state.isMyTurn);
                 state.isRolling = false; state.scatterCallback = null; state.pendingServerDices = null;
+                UIManager.hideDefiButton();
                 if (state.isMyTurn) {
                     DiceSystem.resetDice();
                     Animations.showDiceEntry(DiceSystem.getDiceMeshes());
@@ -222,6 +224,11 @@ const GameSocketHandlers = {
         SocketClient.onChoicesViewState(data => {
             state.currentChoices = data; state.selectedChoice = data.idSelectedChoice;
             UIManager.updateChoices(data.availableChoices, data.canMakeChoice, data.idSelectedChoice);
+            const defiCard = document.getElementById('defi-card');
+            if (defiCard) {
+                defiCard.classList.toggle('hidden', !data.canDeclareDefi && !data.isDefi);
+                defiCard.classList.toggle('declared', !!data.isDefi);
+            }
         });
 
         SocketClient.onGridViewState(data => {
@@ -236,8 +243,35 @@ const GameSocketHandlers = {
             }
             if (data.winner) {
                 const isWinner = data.winner === state.idPlayer;
-                UIManager.setTurnIndicator(false);
-                document.getElementById('turn-indicator').textContent = isWinner ? '🏆 VICTOIRE !' : '💀 DÉFAITE';
+                const glow = document.getElementById('turn-glow');
+                if (glow) { glow.classList.remove('my-turn', 'opponent-turn'); }
+
+                const playerScore   = (data.playerScore   || 0) * 100;
+                const opponentScore = (data.opponentScore || 0) * 100;
+                const playerName   = document.getElementById('player-badge-name')?.textContent   || 'VOUS';
+                const opponentName = document.getElementById('opponent-badge-name')?.textContent || 'ADVERSAIRE';
+
+                document.getElementById('game-over-title').textContent    = isWinner ? 'VICTOIRE !' : 'DÉFAITE';
+                document.getElementById('game-over-title').className      = 'game-over-title ' + (isWinner ? 'victory' : 'defeat');
+                document.getElementById('game-over-subtitle').textContent = isWinner ? 'FÉLICITATIONS' : 'MEILLEURE CHANCE LA PROCHAINE FOIS';
+                document.getElementById('game-over-player-name').textContent   = playerName;
+                document.getElementById('game-over-opponent-name').textContent = opponentName;
+                document.getElementById('game-over-player-score').textContent   = '$' + playerScore;
+                document.getElementById('game-over-opponent-score').textContent = '$' + opponentScore;
+
+                document.getElementById('game-over-player').classList.toggle('winner', isWinner);
+                document.getElementById('game-over-opponent').classList.toggle('winner', !isWinner);
+
+                const modal = document.getElementById('game-over-modal');
+                modal.classList.add('show');
+                gsap.from('.game-over-card', { scale: 0.8, opacity: 0, duration: 0.5, ease: 'back.out(1.4)' });
+
+                document.getElementById('game-over-replay').onclick = () => {
+                    modal.classList.remove('show');
+                    DiceSystem.showDice(false);
+                    document.getElementById('game-bg').style.display = 'none';
+                    UIManager.showQueueOverlay(true);
+                };
             }
             if (data.grid && state.currentGrid?.grid) {
                 data.grid.forEach((row, ri) => {

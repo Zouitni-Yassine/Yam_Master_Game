@@ -101,6 +101,7 @@ const SocketClient = (() => {
         if (socket) socket.emit('game.grid.selected', { cellId, rowIndex, cellIndex });
     }
 
+    function declareDefi() { if (socket) socket.emit('game.defi.declare'); }
     function joinBot(difficulty) { if (socket) socket.emit('queue.join.bot', { difficulty }); }
     function createRoom() { if (socket) socket.emit('room.create'); }
     function joinRoom(code) { if (socket) socket.emit('room.join', { code }); }
@@ -130,7 +131,7 @@ const SocketClient = (() => {
     return {
         connect, joinQueue, leaveQueue,
         rollDice, lockDice, selectChoice, selectGridCell,
-        joinBot, createRoom, joinRoom,
+        declareDefi, joinBot, createRoom, joinRoom,
         userLogin, userRegister, getRankingList,
         onConnect, onDisconnect, onQueueAdded, onGameStart,
         onTimer, onDeckViewState, onChoicesViewState, onGridViewState,

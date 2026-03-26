@@ -169,6 +169,26 @@ const GameUIHandlers = {
             document.getElementById('rank-info-overlay').classList.remove('hidden');
         });
 
+        const openRules = () => document.getElementById('rules-overlay').classList.remove('hidden');
+        document.getElementById('btn-rules').addEventListener('click', openRules);
+        document.getElementById('btn-rules-login').addEventListener('click', openRules);
+        document.getElementById('btn-close-rules').addEventListener('click', () => {
+            document.getElementById('rules-overlay').classList.add('hidden');
+        });
+        document.getElementById('rules-overlay').addEventListener('click', e => {
+            if (e.target === document.getElementById('rules-overlay'))
+                document.getElementById('rules-overlay').classList.add('hidden');
+        });
+
+        // Rules tabs switching
+        document.querySelectorAll('.rules-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.rulesTab;
+                document.querySelectorAll('.rules-tab').forEach(t => t.classList.toggle('active', t === tab));
+                document.querySelectorAll('.rules-tab-content').forEach(c => c.classList.toggle('active', c.dataset.rulesContent === target));
+            });
+        });
+
         document.getElementById('btn-close-rank-info').addEventListener('click', () => {
             document.getElementById('rank-info-overlay').classList.add('hidden');
         });
@@ -232,6 +252,14 @@ const GameUIHandlers = {
 
         document.getElementById('room-code-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') document.getElementById('btn-join-room').click();
+        });
+
+        document.getElementById('defi-card').addEventListener('click', () => {
+            if (!state.isMyTurn) return;
+            const card = document.getElementById('defi-card');
+            if (card.classList.contains('declared')) return;
+            SocketClient.declareDefi();
+            SoundManager.play('click');
         });
 
         document.getElementById('btn-roll').addEventListener('click', () => {

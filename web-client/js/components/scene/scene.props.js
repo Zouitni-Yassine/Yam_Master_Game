@@ -1,13 +1,9 @@
 const SceneProps = {
     setup(scene) {
-        SceneProps._tables(scene);
-        SceneProps._roulette(scene);
-        SceneProps._slots(scene);
     },
 
     _tables(scene) {
         [
-            { x: -10, z: -10, ry:  0.4,  type: 'half'  },
             { x:  11, z: -12, ry: -0.3,  type: 'round' },
             { x:  -6, z: -16, ry:  0.15, type: 'round' },
             { x:   7, z: -17, ry: -0.1,  type: 'half'  },

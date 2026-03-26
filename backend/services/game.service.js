@@ -162,7 +162,11 @@ const GameService = {
                     displayChoices: true,
                     canMakeChoice: playerKey === gameState.currentTurn,
                     idSelectedChoice: gameState.choices.idSelectedChoice,
-                    availableChoices: gameState.choices.availableChoices
+                    availableChoices: gameState.choices.availableChoices,
+                    isDefi: gameState.choices.isDefi,
+                    canDeclareDefi: playerKey === gameState.currentTurn
+                        && gameState.deck.rollsCounter === 2
+                        && !gameState.choices.isDefi
                 };
             },
 
@@ -373,14 +377,19 @@ const GameService = {
                     (combination.id === 'carre' && hasFourOfAKind) ||
                     (combination.id === 'yam' && hasFiveOfAKind) ||
                     (combination.id === 'suite' && hasStraight) ||
-                    (combination.id === 'moinshuit' && isLessThanEqual8) ||
-                    (combination.id === 'defi' && isDefi)
+                    (combination.id === 'moinshuit' && isLessThanEqual8)
                 ) {
                     availableCombinations.push(combination);
                 }
             });
 
             const notOnlyBrelan = availableCombinations.some(c => !c.id.includes('brelan'));
+
+            // Défi only if declared AND at least one non-brelan combination achieved
+            if (isDefi && notOnlyBrelan) {
+                availableCombinations.push(ALL_COMBINATIONS.find(c => c.id === 'defi'));
+            }
+
             if (isSec && availableCombinations.length > 0 && notOnlyBrelan) {
                 availableCombinations.push(ALL_COMBINATIONS.find(c => c.id === 'sec'));
             }

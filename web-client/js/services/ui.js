@@ -42,7 +42,18 @@ const UIManager = (() => {
 
     // ---- Turn Indicator ----
     function setTurnIndicator(isYourTurn) {
-        Animations.flashTurnIndicator(isYourTurn ? 'VOTRE TOUR' : 'TOUR ADVERSAIRE');
+        Animations.flashTurnIndicator(isYourTurn ? 'VOTRE TOUR' : 'EN ATTENTE');
+        const glow = document.getElementById('turn-glow');
+        if (glow) {
+            glow.classList.toggle('my-turn', isYourTurn === true);
+            glow.classList.toggle('opponent-turn', isYourTurn === false);
+        }
+    }
+
+    // ---- Defi Button ----
+    function hideDefiButton() {
+        const card = document.getElementById('defi-card');
+        if (card) { card.classList.add('hidden'); card.classList.remove('declared'); }
     }
 
     // ---- Roll Button ----
@@ -121,6 +132,8 @@ const UIManager = (() => {
     // ---- Queue Overlay ----
     function showQueueOverlay(show) {
         document.getElementById('queue-overlay').classList.toggle('hidden', !show);
+        const gameBg = document.getElementById('game-bg');
+        if (gameBg) gameBg.style.display = show ? 'none' : 'block';
     }
 
     function setConnectionStatus(text) {
@@ -173,7 +186,7 @@ const UIManager = (() => {
 
     return {
         init, updateTimer, updateRollCounter, setTurnIndicator,
-        setRollButtonState, showValidateButton,
+        setRollButtonState, showValidateButton, hideDefiButton,
         updateChoices, updateGrid,
         onChoiceSelected, onGridCellSelected, getOnGridCellSelectedCallback,
         showQueueOverlay, setConnectionStatus, setQueueButtons,

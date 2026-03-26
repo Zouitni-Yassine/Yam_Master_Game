@@ -17,8 +17,40 @@
         </div>
     </div>
 
+    <!-- Game background -->
+    <div id="game-bg"></div>
     <!-- Main 3D canvas -->
     <canvas id="game-canvas"></canvas>
+    <!-- Turn glow border -->
+    <div id="turn-glow"></div>
+
+    <!-- Defi card -->
+    <div id="defi-card" class="hidden">
+        <div class="defi-card-inner">
+            <img src="/logo/joker_defi.svg" class="defi-card-img" alt="Défi">
+            <div class="defi-card-label">DÉFI</div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal">
+        <div class="game-over-card">
+            <div class="game-over-title" id="game-over-title">VICTOIRE !</div>
+            <div class="game-over-subtitle" id="game-over-subtitle">PARTIE TERMINÉE</div>
+            <div class="game-over-scores">
+                <div class="game-over-player" id="game-over-player">
+                    <span class="game-over-player-name" id="game-over-player-name">VOUS</span>
+                    <span class="game-over-player-score" id="game-over-player-score">$0</span>
+                </div>
+                <div class="game-over-divider"></div>
+                <div class="game-over-player" id="game-over-opponent">
+                    <span class="game-over-player-name" id="game-over-opponent-name">ADVERSAIRE</span>
+                    <span class="game-over-player-score" id="game-over-opponent-score">$0</span>
+                </div>
+            </div>
+            <button class="game-over-btn" id="game-over-replay">REJOUER</button>
+        </div>
+    </div>
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
@@ -63,6 +95,22 @@
             </div>
         </div>
 
+        <!-- DEV PANEL (Ctrl+Shift+D) -->
+        <div id="dev-panel" style="display:none;position:fixed;top:60px;right:16px;z-index:9999;background:#0d0a04;border:1px solid #7a5c1e;border-radius:10px;padding:14px 16px;min-width:220px;font-family:monospace;font-size:12px;color:#e8d48a;">
+            <div style="font-family:'Cinzel',serif;font-size:11px;letter-spacing:.2em;color:#c9962a;margin-bottom:12px;">⚙ DEV MODE</div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+                <button onclick="DevMode.myTurn()"       class="dev-btn">▶ Mon tour</button>
+                <button onclick="DevMode.opponentTurn()" class="dev-btn">⏸ Tour adverse</button>
+                <hr style="border-color:#2a1f08;margin:2px 0;">
+                <button onclick="DevMode.addScore(100)"  class="dev-btn">+$100 (moi)</button>
+                <button onclick="DevMode.addScore(-100)" class="dev-btn">-$100 (moi)</button>
+                <button onclick="DevMode.placeChip()"    class="dev-btn">🪙 Poser jeton</button>
+                <hr style="border-color:#2a1f08;margin:2px 0;">
+                <button onclick="DevMode.victory()"      class="dev-btn dev-btn-gold">🏆 VICTOIRE</button>
+                <button onclick="DevMode.defeat()"       class="dev-btn dev-btn-dark">💀 DÉFAITE</button>
+            </div>
+        </div>
+
         <!-- Combination choices bar -->
         <div id="choices-bar" class="hidden">
             <div id="choices-container"></div>
@@ -84,6 +132,9 @@
         <p id="login-error" class="login-error hidden"></p>
         <div id="login-overlay">
             <canvas id="login-canvas"></canvas>
+
+            <button id="btn-rules-login" class="rules-login-btn">📖 RÈGLES DU JEU</button>
+
             <div class="login-card">
                 <div class="login-brand">
                     <div class="login-brand-icon"><canvas id="login-die-canvas"></canvas></div>
@@ -199,6 +250,7 @@
                         <span id="menu-player-score" class="menu-chip-score">$1,000</span>
                     </div>
                     <button id="btn-ranking" class="ranking-btn">🏆 CLASSEMENT</button>
+                    <button id="btn-rules" class="ranking-btn">📖 RÈGLES</button>
                 </div>
 
                 <!-- Die + Title -->
@@ -325,6 +377,115 @@
         </div>
 
         <!-- Rank info popup -->
+        <!-- Rules overlay -->
+        <div id="rules-overlay" class="hidden">
+            <div class="rules-panel">
+                <div class="rules-header">
+                    <span>RÈGLES DU JEU</span>
+                    <button id="btn-close-rules" class="ranking-close">✕</button>
+                </div>
+                <div class="rules-tabs">
+                    <button class="rules-tab active" data-rules-tab="gameplay">🎲 Jeu</button>
+                    <button class="rules-tab" data-rules-tab="combos">🃏 Combos</button>
+                    <button class="rules-tab" data-rules-tab="gains">💰 Gains</button>
+                    <button class="rules-tab" data-rules-tab="ranking">🏆 Classement</button>
+                </div>
+                <div class="rules-body">
+                    <!-- TAB: Gameplay -->
+                    <div class="rules-tab-content active" data-rules-content="gameplay">
+                        <section class="rules-section">
+                            <h3>🎯 But du jeu</h3>
+                            <p>Marquer plus de points que l'adversaire en réalisant des combinaisons avec les dés, ou réussir un <strong>alignement de 5 pions</strong> pour gagner instantanément.</p>
+                        </section>
+                        <section class="rules-section">
+                            <h3>🎲 Déroulement d'un tour</h3>
+                            <p>À son tour, le joueur lance les <strong>5 dés jusqu'à 3 fois</strong>. Après chaque lancer, il peut écarter des dés et relancer les autres. Il choisit ensuite une combinaison et place un pion sur la case correspondante du plateau.</p>
+                        </section>
+                        <section class="rules-section">
+                            <h3>📊 Alignements sur le plateau</h3>
+                            <div class="rules-combos">
+                                <div class="rules-combo"><span class="combo-name">Alignement de 3</span><span class="combo-desc">1 point</span></div>
+                                <div class="rules-combo"><span class="combo-name">Alignement de 4</span><span class="combo-desc">2 points</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">Alignement de 5</span><span class="combo-desc">Victoire instantanée !</span></div>
+                            </div>
+                            <p class="rules-note">Les alignements peuvent être horizontaux, verticaux ou diagonaux.</p>
+                        </section>
+                    </div>
+
+                    <!-- TAB: Combos -->
+                    <div class="rules-tab-content" data-rules-content="combos">
+                        <section class="rules-section">
+                            <h3>🃏 Combinaisons disponibles</h3>
+                            <div class="rules-combos">
+                                <div class="rules-combo"><span class="combo-name">Brelan 1 à 6</span><span class="combo-desc">3 dés identiques (ex: 3×4)</span></div>
+                                <div class="rules-combo"><span class="combo-name">Full</span><span class="combo-desc">Un brelan + une paire</span></div>
+                                <div class="rules-combo"><span class="combo-name">Carré</span><span class="combo-desc">4 dés identiques</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">Yam</span><span class="combo-desc">5 dés identiques — le plus puissant !</span></div>
+                                <div class="rules-combo"><span class="combo-name">Suite</span><span class="combo-desc">1-2-3-4-5 ou 2-3-4-5-6</span></div>
+                                <div class="rules-combo"><span class="combo-name">≤ 8</span><span class="combo-desc">Somme des 5 dés inférieure ou égale à 8</span></div>
+                                <div class="rules-combo"><span class="combo-name">Sec</span><span class="combo-desc">Combo non-brelan réalisée dès le 1er lancer</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">Défi</span><span class="combo-desc">Déclaré avant le 2e lancer — réussir une combo non-brelan pour booster les gains</span></div>
+                            </div>
+                        </section>
+                        <section class="rules-section">
+                            <h3>🎴 Le Défi</h3>
+                            <p>Avant votre 2e lancer, cliquez sur la <strong>carte Défi</strong> à droite. Si vous réussissez une combinaison non-brelan, vous marquez des points bonus. Risqué mais récompensé !</p>
+                        </section>
+                    </div>
+
+                    <!-- TAB: Gains -->
+                    <div class="rules-tab-content" data-rules-content="gains">
+                        <section class="rules-section">
+                            <h3>💰 Gains par victoire</h3>
+                            <div class="rules-combos">
+                                <div class="rules-combo"><span class="combo-name">Victoire normale</span><span class="combo-desc">+550 $</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">Victoire ligne de 5</span><span class="combo-desc">+1 000 $</span></div>
+                            </div>
+                        </section>
+                        <section class="rules-section">
+                            <h3>📉 Pertes par défaite</h3>
+                            <div class="rules-combos">
+                                <div class="rules-combo"><span class="combo-name">Iron / Bronze / Silver</span><span class="combo-desc">−200 $ (défaite normale) · −500 $ (ligne de 5)</span></div>
+                                <div class="rules-combo"><span class="combo-name">Gold</span><span class="combo-desc">−500 $ (défaite normale) · −500 $ (ligne de 5)</span></div>
+                                <div class="rules-combo"><span class="combo-name">Platinum</span><span class="combo-desc">−500 $ (défaite normale) · −500 $ (ligne de 5)</span></div>
+                                <div class="rules-combo"><span class="combo-name">Diamond</span><span class="combo-desc">−500 $ (défaite normale) · −500 $ (ligne de 5)</span></div>
+                                <div class="rules-combo"><span class="combo-name">Ascendant</span><span class="combo-desc">−500 $ (défaite normale) · −500 $ (ligne de 5)</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">Immortal</span><span class="combo-desc">−500 $ (défaite normale) · −500 $ (ligne de 5)</span></div>
+                            </div>
+                            <p class="rules-note">Les rangs bas (Iron→Silver) bénéficient d'une protection pour faciliter la progression.</p>
+                        </section>
+                    </div>
+
+                    <!-- TAB: Ranking -->
+                    <div class="rules-tab-content" data-rules-content="ranking">
+                        <section class="rules-section">
+                            <h3>🏆 Modes affectant le classement</h3>
+                            <div class="rules-combos">
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">En ligne (PvP)</span><span class="combo-desc">✅ Affecte le classement</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name">Bot — Difficile</span><span class="combo-desc">✅ Affecte le classement</span></div>
+                                <div class="rules-combo"><span class="combo-name">Bot — Facile</span><span class="combo-desc">❌ Pas d'impact sur le classement</span></div>
+                                <div class="rules-combo"><span class="combo-name">Bot — Intermédiaire</span><span class="combo-desc">❌ Pas d'impact sur le classement</span></div>
+                                <div class="rules-combo"><span class="combo-name">Amis (room privée)</span><span class="combo-desc">❌ Pas d'impact sur le classement</span></div>
+                            </div>
+                        </section>
+                        <section class="rules-section">
+                            <h3>🎖️ Paliers de rangs</h3>
+                            <div class="rules-combos">
+                                <div class="rules-combo"><span class="combo-name" style="color:#9eaab5">Iron</span><span class="combo-desc">0 $</span></div>
+                                <div class="rules-combo"><span class="combo-name" style="color:#cd7f32">Bronze</span><span class="combo-desc">500 $</span></div>
+                                <div class="rules-combo"><span class="combo-name" style="color:#b0b8c1">Silver</span><span class="combo-desc">1 500 $</span></div>
+                                <div class="rules-combo"><span class="combo-name" style="color:#ffd700">Gold</span><span class="combo-desc">4 000 $</span></div>
+                                <div class="rules-combo"><span class="combo-name" style="color:#70c8c8">Platinum</span><span class="combo-desc">10 000 $</span></div>
+                                <div class="rules-combo"><span class="combo-name" style="color:#a29bfe">Diamond</span><span class="combo-desc">25 000 $</span></div>
+                                <div class="rules-combo"><span class="combo-name" style="color:#00e676">Ascendant</span><span class="combo-desc">50 000 $</span></div>
+                                <div class="rules-combo rules-combo-gold"><span class="combo-name" style="color:#ff4757">Immortal</span><span class="combo-desc">100 000 $</span></div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="rank-info-overlay" class="hidden">
           <div class="rank-info-panel">
             <div class="rank-info-header">
@@ -418,5 +579,7 @@
     <script src="js/controllers/game-state.js"></script>
     <!-- Entry point -->
     <script src="js/main.js"></script>
+    <!-- Dev mode -->
+    <script src="js/dev-mode.js"></script>
 </body>
 </html>
