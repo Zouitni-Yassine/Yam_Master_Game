@@ -7,6 +7,10 @@
 const SoundManager = (() => {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     let enabled = true;
+    let volumeScale = 1.0;
+
+    function setEnabled(val) { enabled = val; }
+    function setVolume(vol)  { volumeScale = Math.min(1, Math.max(0, vol)); }
 
     function play(type) {
         if (!enabled) return;
@@ -34,6 +38,7 @@ const SoundManager = (() => {
     }
 
     function playTone(freq, duration, volume) {
+        volume = volume * volumeScale;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -47,6 +52,7 @@ const SoundManager = (() => {
     }
 
     function playNoise(duration, volume) {
+        volume = volume * volumeScale;
         const bufferSize = audioCtx.sampleRate * duration;
         const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -78,7 +84,7 @@ const SoundManager = (() => {
         return enabled;
     }
 
-    return { play, toggle };
+    return { play, toggle, setEnabled, setVolume };
 })();
 
 /* ---- App Initialization ---- */

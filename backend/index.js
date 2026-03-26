@@ -68,7 +68,7 @@ const updateClientsViewGrid = (game) => {
 // ---- Score deltas based on win type and rank ----
 function getScoreDeltas(winType, loserScore) {
     if (winType === 'line5') return { winGain: 1000, lossAmount: 500 };
-    const lossAmount = loserScore < 4000 ? 200 : 500; // Iron/Bronze/Silver = -200, Gold+ = -500
+    const lossAmount = loserScore < 4000 ? 200 : loserScore < 25000 ? 350 : 450; // Iron/Bronze/Silver = -200, Gold/Plat = -350, Diamond+ = -450
     return { winGain: 550, lossAmount };
 }
 

@@ -137,6 +137,7 @@ const GameSocketHandlers = {
             UIManager.showQueueOverlay(false);
             document.getElementById('game-bg').style.display = 'block';
             DiceSystem.showDice(true);
+            if (typeof Settings !== 'undefined') Settings.playGameMusic();
             Animations.showDiceEntry(DiceSystem.getDiceMeshes());
         });
 
@@ -271,6 +272,7 @@ const GameSocketHandlers = {
                     DiceSystem.showDice(false);
                     document.getElementById('game-bg').style.display = 'none';
                     UIManager.showQueueOverlay(true);
+                    if (typeof Settings !== 'undefined') Settings.playMenuMusic();
                 };
             }
             if (data.grid && state.currentGrid?.grid) {
@@ -317,6 +319,7 @@ const GameSocketHandlers = {
             }});
             document.getElementById('queue-overlay').classList.remove('hidden');
             gsap.from('#queue-overlay', { opacity: 0, duration: 0.4 });
+            if (typeof Settings !== 'undefined') Settings.playMenuMusic();
 
             // Player username
             document.getElementById('player-username-display').textContent = data.username;
