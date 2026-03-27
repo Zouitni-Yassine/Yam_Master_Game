@@ -42,7 +42,8 @@ const UIManager = (() => {
 
     // ---- Turn Indicator ----
     function setTurnIndicator(isYourTurn) {
-        Animations.flashTurnIndicator(isYourTurn ? 'VOTRE TOUR' : 'EN ATTENTE');
+        const _t = typeof Settings !== 'undefined' ? k => Settings.t(k) : k => k;
+        Animations.flashTurnIndicator(isYourTurn ? _t('turn-yours') : _t('turn-wait'));
         const glow = document.getElementById('turn-glow');
         if (glow) {
             glow.classList.toggle('my-turn', isYourTurn === true);
@@ -60,7 +61,8 @@ const UIManager = (() => {
     function setRollButtonState(enabled, rollsCounter) {
         const btn = document.getElementById('btn-roll');
         btn.disabled = !enabled;
-        btn.querySelector('.btn-text').textContent = rollsCounter === 0 ? 'LANCER' : 'RELANCER';
+        const _tr = typeof Settings !== 'undefined' ? k => Settings.t(k) : k => k;
+        btn.querySelector('.btn-text').textContent = rollsCounter === 0 ? _tr('btn-roll-text') : _tr('btn-reroll-text');
 
         if (enabled) {
             Animations.pulseButton(btn);

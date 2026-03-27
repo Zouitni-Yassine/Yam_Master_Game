@@ -284,7 +284,7 @@
                     <div id="room-code-display" class="hidden">
                         <div class="code-label">CODE DE LA PARTIE</div>
                         <div id="room-code-text" class="room-code"></div>
-                        <div class="waiting-dots">En attente de l'adversaire<span class="dots">...</span></div>
+                        <div class="waiting-dots"><span id="room-waiting-dots">En attente de l'adversaire</span><span class="dots">...</span></div>
                     </div>
                     <div class="divider-or">— OU —</div>
                     <div class="join-row">
@@ -488,7 +488,7 @@
         <div id="rank-info-overlay" class="hidden">
           <div class="rank-info-panel">
             <div class="rank-info-header">
-              <span>SYSTÈME DE RANGS</span>
+              <span id="rank-info-title">SYSTÈME DE RANGS</span>
               <button id="btn-close-rank-info" class="ranking-close">✕</button>
             </div>
             <div class="rank-info-grid">

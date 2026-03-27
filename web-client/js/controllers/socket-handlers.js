@@ -37,16 +37,17 @@ function _renderLeaderboard() {
         ? _rankingData
         : _rankingData.filter(p => getRank(p.score || 0).name === _rankFilter);
 
+    const _t = typeof Settings !== 'undefined' ? k => Settings.t(k) : k => k;
     const colHeader = `<div class="ranking-cols-header">
         <span class="rcol-num-h">#</span>
-        <span class="rcol-rank-h">RANG</span>
-        <span class="rcol-player-h">JOUEUR</span>
-        <span class="rcol-score-h">SOLDE</span>
-        <span class="rcol-record-h">V · D</span>
+        <span class="rcol-rank-h">${_t('rank-header-rank')}</span>
+        <span class="rcol-player-h">${_t('rank-header-player')}</span>
+        <span class="rcol-score-h">${_t('rank-header-score')}</span>
+        <span class="rcol-record-h">${_t('rank-header-record')}</span>
     </div>`;
 
     if (!filtered.length) {
-        list.innerHTML = colHeader + `<div class="ranking-empty">Aucun joueur dans ce rang</div>`;
+        list.innerHTML = colHeader + `<div class="ranking-empty">${_t('rank-empty')}</div>`;
         return;
     }
 
@@ -103,14 +104,14 @@ function showDollarGain(text) {
 const GameSocketHandlers = {
     setup(state) {
         SocketClient.onConnect(id => {
-            UIManager.setConnectionStatus(`Connecté`);
+            UIManager.setConnectionStatus(typeof Settings !== 'undefined' ? Settings.t('connected') : 'Connecté');
             document.getElementById('btn-join-queue').disabled = false;
             document.getElementById('btn-play-friend').disabled = false;
             document.getElementById('btn-play-bot').disabled = false;
         });
 
         SocketClient.onDisconnect(() => {
-            UIManager.setConnectionStatus('Déconnecté. Reconnexion...');
+            UIManager.setConnectionStatus(typeof Settings !== 'undefined' ? Settings.t('disconnected') : 'Déconnecté. Reconnexion...');
             UIManager.setQueueButtons('disconnected');
             state.inGame = false; state.inQueue = false;
         });
