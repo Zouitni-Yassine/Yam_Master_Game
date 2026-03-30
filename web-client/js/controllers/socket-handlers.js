@@ -138,7 +138,7 @@ const GameSocketHandlers = {
             UIManager.showQueueOverlay(false);
             document.getElementById('game-bg').style.display = 'block';
             DiceSystem.showDice(true);
-            if (typeof Settings !== 'undefined') Settings.playGameMusic();
+            Characters.show(true);
             Animations.showDiceEntry(DiceSystem.getDiceMeshes());
         });
 
@@ -271,9 +271,9 @@ const GameSocketHandlers = {
                 document.getElementById('game-over-replay').onclick = () => {
                     modal.classList.remove('show');
                     DiceSystem.showDice(false);
+                    Characters.show(false);
                     document.getElementById('game-bg').style.display = 'none';
                     UIManager.showQueueOverlay(true);
-                    if (typeof Settings !== 'undefined') Settings.playMenuMusic();
                 };
             }
             if (data.grid && state.currentGrid?.grid) {
@@ -283,7 +283,6 @@ const GameSocketHandlers = {
                         if (cell.owner && (!prev || !prev.owner)) {
                             // Use cell.owner directly: player:1=red, player:2=black on BOTH clients
                             ChipSystem.flyChipToCell(ri, ci, cell.owner);
-                            SoundManager.play('chip');
                         }
                     });
                 });
@@ -320,7 +319,7 @@ const GameSocketHandlers = {
             }});
             document.getElementById('queue-overlay').classList.remove('hidden');
             gsap.from('#queue-overlay', { opacity: 0, duration: 0.4 });
-            if (typeof Settings !== 'undefined') Settings.playMenuMusic();
+            if (typeof Settings !== 'undefined') Settings.playMusic();
 
             // Player username
             document.getElementById('player-username-display').textContent = data.username;

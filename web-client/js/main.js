@@ -14,23 +14,9 @@ const SoundManager = (() => {
 
     function play(type) {
         if (!enabled) return;
-
-        // Ensure AudioContext is resumed (browser policy)
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
 
         switch (type) {
-            case 'roll':
-                playNoise(0.15, 0.4);
-                setTimeout(() => playNoise(0.1, 0.3), 100);
-                setTimeout(() => playNoise(0.08, 0.2), 200);
-                setTimeout(() => playTone(200, 0.05, 0.1), 350);
-                break;
-            case 'chip':
-                playTone(800, 0.08, 0.15);
-                setTimeout(() => playTone(1200, 0.05, 0.1), 80);
-                break;
             case 'click':
                 playTone(600, 0.03, 0.08);
                 break;
@@ -49,34 +35,6 @@ const SoundManager = (() => {
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
         osc.start();
         osc.stop(audioCtx.currentTime + duration);
-    }
-
-    function playNoise(duration, volume) {
-        volume = volume * volumeScale;
-        const bufferSize = audioCtx.sampleRate * duration;
-        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * 0.5;
-        }
-        const source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-        const gain = audioCtx.createGain();
-        source.connect(gain);
-        gain.connect(audioCtx.destination);
-        gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
-        // Bandpass for more realistic dice sound
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 2000;
-        filter.Q.value = 0.5;
-        source.disconnect();
-        source.connect(filter);
-        filter.connect(gain);
-
-        source.start();
     }
 
     function toggle() {
@@ -117,6 +75,9 @@ const SoundManager = (() => {
 
     // Step 4b: Init dice cups
     DiceCup.init(scene);
+
+    // Step 4c: Init characters
+    Characters.init(scene);
 
     // Step 5: Init UI
     setProgress(80, 'Configuration de l\'interface...');
@@ -164,6 +125,7 @@ const SoundManager = (() => {
     // ---- Game Loop ----
     function animate() {
         requestAnimationFrame(animate);
+        Characters.update();
         CasinoScene.update();
         CasinoScene.render();
     }

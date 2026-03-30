@@ -5,9 +5,9 @@ const CasinoScene = (() => {
         scene = new THREE.Scene();
         scene.background = null;
 
-        camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 11, 9.5);
-        camera.lookAt(0, 0, 0);
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 7.5, 11.5);
+        camera.lookAt(0, 1.5, -6);
 
         renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         renderer.setClearColor(0x000000, 0);
