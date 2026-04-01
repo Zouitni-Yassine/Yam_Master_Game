@@ -245,60 +245,78 @@ body {
 .score-badge {
     display: flex;
     align-items: center;
+    gap: 8px;
+}
+
+.player-badge  { flex-direction: row; }
+.opponent-badge { flex-direction: row-reverse; }
+
+.badge-card {
+    display: flex;
+    align-items: center;
     gap: 10px;
-    padding: 6px 18px 6px 10px;
-    background: linear-gradient(145deg, rgba(20, 16, 8, 0.95), rgba(12, 10, 5, 0.95));
-    border: 1px solid rgba(212, 164, 76, 0.25);
-    border-radius: 10px;
-    backdrop-filter: blur(8px);
+    padding: 7px 16px 7px 10px;
+    background: linear-gradient(160deg, rgba(18,14,7,0.93) 0%, rgba(10,8,4,0.96) 100%);
+    border: 1px solid rgba(212,164,76,0.2);
+    border-radius: 40px;
+    backdrop-filter: blur(14px);
 }
 
-.player-badge {
-    border-left: 3px solid #cc1111;
+.opponent-badge .badge-card {
+    flex-direction: row-reverse;
+    padding: 7px 10px 7px 16px;
 }
 
-.opponent-badge {
-    border-right: 3px solid #333333;
-}
-
-.badge-icon {
-    font-size: 1.4rem;
-    opacity: 0.85;
-    line-height: 1;
+.badge-initial {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(212,164,76,0.2), rgba(212,164,76,0.04));
+    border: 1.5px solid rgba(212,164,76,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Cinzel', serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #d4a44c;
+    text-transform: uppercase;
 }
 
 .badge-info {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
+}
+
+.opponent-badge .badge-info {
+    text-align: right;
 }
 
 .badge-label {
     font-family: 'Cinzel', serif;
-    font-size: 0.6rem;
+    font-size: 0.52rem;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    color: #8a7a5a;
+    letter-spacing: 0.2em;
+    color: rgba(212,164,76,0.5);
+    text-transform: uppercase;
+    line-height: 1;
 }
 
 .badge-score {
     font-family: 'Cinzel', serif;
-    font-size: 1.6rem;
+    font-size: 1.05rem;
     font-weight: 900;
-    color: #f5d78e;
+    color: #f0cc78;
     line-height: 1;
+    letter-spacing: 0.02em;
 }
 
 /* Timer ring */
 .timer-ring {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     position: relative;
     flex-shrink: 0;
 }
@@ -1602,10 +1620,10 @@ body {
     box-shadow: 0 0 16px rgba(201,150,42,0.2);
 }
 
-/* ---- Settings button (top-left) ---- */
+/* ---- Settings button (bottom-left) ---- */
 .settings-open-btn {
     position: absolute;
-    top: 28px;
+    bottom: 28px;
     left: 32px;
     background: rgba(10, 7, 2, 0.75);
     border: 1px solid #3a2c0e;

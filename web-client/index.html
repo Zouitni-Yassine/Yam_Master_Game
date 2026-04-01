@@ -59,17 +59,19 @@
         <div id="top-bar">
             <!-- Player score badge (left) -->
             <div class="score-badge player-badge">
-                <div class="badge-icon" id="player-badge-avatar">🎲</div>
-                <div class="badge-info">
-                    <span class="badge-label" id="player-badge-name">VOUS</span>
-                    <span id="player-score" class="badge-score">$0</span>
-                </div>
                 <div id="player-timer-ring" class="timer-ring">
                     <svg viewBox="0 0 40 40">
                         <circle class="timer-bg" cx="20" cy="20" r="18"/>
                         <circle id="player-timer-circle" class="timer-fg" cx="20" cy="20" r="18"/>
                     </svg>
                     <span id="player-timer-text" class="timer-text">--</span>
+                </div>
+                <div class="badge-card">
+                    <div class="badge-initial" id="player-badge-avatar">V</div>
+                    <div class="badge-info">
+                        <span class="badge-label" id="player-badge-name">VOUS</span>
+                        <span id="player-score" class="badge-score">$0</span>
+                    </div>
                 </div>
             </div>
 
@@ -88,11 +90,13 @@
                     </svg>
                     <span id="opponent-timer-text" class="timer-text">--</span>
                 </div>
-                <div class="badge-info">
-                    <span class="badge-label" id="opponent-badge-name">ADVERSAIRE</span>
-                    <span id="opponent-score" class="badge-score">$0</span>
+                <div class="badge-card">
+                    <div class="badge-initial" id="opponent-badge-avatar">A</div>
+                    <div class="badge-info">
+                        <span class="badge-label" id="opponent-badge-name">ADVERSAIRE</span>
+                        <span id="opponent-score" class="badge-score">$0</span>
+                    </div>
                 </div>
-                <div class="badge-icon" id="opponent-badge-avatar">👤</div>
             </div>
         </div>
 
