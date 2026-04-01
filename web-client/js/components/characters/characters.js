@@ -1,11 +1,15 @@
 /* ============================================
    CHARACTERS SYSTEM
    Two 3D characters sitting at the table (1v1)
+   - Bot mode: Sitting Talking (Dice King)
+   - Online player:1 sees: Sitting Idle (1)
+   - Online player:2 sees: Sitting Idle
    ============================================ */
 
 const Characters = (() => {
-    let _mixer1 = null, _mixer2 = null;
-    let _char1 = null, _char2 = null;
+    let _mixerA = null, _mixerB = null, _mixerBot = null;
+    let _charA = null, _charB = null, _charBot = null;
+    let _isBot = false, _playerKey = 'player:1';
     const _clock = new THREE.Clock();
 
     function init(scene) {
@@ -15,13 +19,13 @@ const Characters = (() => {
         }
         const loader = new THREE.FBXLoader();
 
-        function loadChar(url, posZ, rotY, onLoaded) {
+        function loadChar(url, onLoaded) {
             loader.load(
                 url,
                 (fbx) => {
                     fbx.scale.setScalar(0.072);
-                    fbx.position.set(0, -3.2, posZ);
-                    fbx.rotation.y = rotY;
+                    fbx.position.set(0, -5.6, -8.5);
+                    fbx.rotation.y = 0;
                     fbx.traverse(child => {
                         if (child.isMesh) {
                             child.castShadow = true;
@@ -30,41 +34,56 @@ const Characters = (() => {
                     });
                     fbx.visible = false;
                     scene.add(fbx);
-                    if (fbx.animations.length) {
-                        const mixer = new THREE.AnimationMixer(fbx);
-                        mixer.clipAction(fbx.animations[0]).play();
-                        onLoaded(fbx, mixer);
-                    } else {
-                        onLoaded(fbx, null);
-                    }
+                    const mixer = fbx.animations.length ? new THREE.AnimationMixer(fbx) : null;
+                    if (mixer) mixer.clipAction(fbx.animations[0]).play();
+                    onLoaded(fbx, mixer);
                 },
                 undefined,
                 (err) => console.error('FBX load error:', url, err)
             );
         }
 
-        // Player character — near side (front of table)
-        loadChar('/models/Sitting%20Idle.fbx', 7.5, Math.PI, (fbx, mixer) => {
-            _char1 = fbx; _mixer1 = mixer;
+        // Model A — shown to player:1 in online mode
+        loadChar('/models/Sitting%20Idle%20(1).fbx', (fbx, mixer) => {
+            _charA = fbx; _mixerA = mixer;
         });
 
-        // Opponent character — far side (back of table)
-        loadChar('/models/Sitting%20Idle%20(1).fbx', -8.5, 0, (fbx, mixer) => {
-            _char2 = fbx; _mixer2 = mixer;
+        // Model B — shown to player:2 in online mode
+        loadChar('/models/Sitting%20Idle.fbx', (fbx, mixer) => {
+            _charB = fbx; _mixerB = mixer;
+        });
+
+        // Bot — shown in Dice King mode
+        loadChar('/models/Sitting%20Talking.fbx', (fbx, mixer) => {
+            _charBot = fbx; _mixerBot = mixer;
         });
     }
 
     function show(visible) {
-        // char1 (player) always hidden — first-person view
-        if (_char1) _char1.visible = false;
-        if (_char2) _char2.visible = visible;
+        if (_charA)   _charA.visible   = false;
+        if (_charB)   _charB.visible   = false;
+        if (_charBot) _charBot.visible = false;
+
+        if (!visible) return;
+
+        if (_isBot) {
+            if (_charBot) _charBot.visible = true;
+        } else if (_playerKey === 'player:1') {
+            if (_charA) _charA.visible = true;
+        } else {
+            if (_charB) _charB.visible = true;
+        }
     }
+
+    function setBot(isBot) { _isBot = isBot; }
+    function setPlayerKey(key) { _playerKey = key; }
 
     function update() {
         const delta = _clock.getDelta();
-        if (_mixer1) _mixer1.update(delta);
-        if (_mixer2) _mixer2.update(delta);
+        if (_mixerA)   _mixerA.update(delta);
+        if (_mixerB)   _mixerB.update(delta);
+        if (_mixerBot) _mixerBot.update(delta);
     }
 
-    return { init, show, update };
+    return { init, show, setBot, setPlayerKey, update };
 })();

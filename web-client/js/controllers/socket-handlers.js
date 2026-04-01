@@ -138,6 +138,8 @@ const GameSocketHandlers = {
             UIManager.showQueueOverlay(false);
             document.getElementById('game-bg').style.display = 'block';
             DiceSystem.showDice(true);
+            Characters.setBot(data.opponentName === 'DiceKing');
+            Characters.setPlayerKey(data.playerKey);
             Characters.show(true);
             Animations.showDiceEntry(DiceSystem.getDiceMeshes());
         });
