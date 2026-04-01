@@ -67,7 +67,7 @@ const Settings = (() => {
             'btn-online':       'JOUER EN LIGNE',
             'btn-friend':       'JOUER AVEC UN AMI',
             'btn-bot':          'JOUER CONTRE LE DICE KING',
-            'btn-ranking':      '🏆 CLASSEMENT',
+            'btn-ranking':      'CLASSEMENT',
             'submenu-friend':   'JOUER AVEC UN AMI',
             'btn-create-room':  'CRÉER UNE PARTIE',
             'code-label':       'CODE DE LA PARTIE',
@@ -92,8 +92,8 @@ const Settings = (() => {
             'turn-wait':        'EN ATTENTE',
             'connected':        'Connecté',
             'disconnected':     'Déconnecté. Reconnexion...',
-            'rules-btn':        '📖 RÈGLES DU JEU',
-            'settings-btn':     '⚙ PARAMÈTRES',
+            'rules-btn':        'RÈGLES DU JEU',
+            'settings-btn':     'PARAMÈTRES',
             'settings-title':   'PARAMÈTRES',
             'lang-label':       '🌐 LANGUE',
             'music-lbl':        '🎵 Musique',
@@ -106,6 +106,19 @@ const Settings = (() => {
             'rank-header-score':'SOLDE',
             'rank-header-record':'V · D',
             'rank-empty':       'Aucun joueur dans ce rang',
+            'roll-prefix':      'LANCE',
+            'defi-label':       'DÉFI',
+            'gameover-win':     'VICTOIRE !',
+            'gameover-lose':    'DÉFAITE',
+            'gameover-congrats':'FÉLICITATIONS',
+            'gameover-better':  'MEILLEURE CHANCE LA PROCHAINE FOIS',
+            'gameover-replay':  'REJOUER',
+            'player-you':       'VOUS',
+            'player-opp':       'ADVERSAIRE',
+            'rules-tab-jeu':    '🎲 Jeu',
+            'rules-tab-combos': '🃏 Combos',
+            'rules-tab-gains':  '💰 Gains',
+            'rules-tab-rank':   '🏆 Classement',
         },
         en: {
             'brand-sub':        'PRIVATE TABLE · MEMBERS ONLY',
@@ -127,7 +140,7 @@ const Settings = (() => {
             'btn-online':       'PLAY ONLINE',
             'btn-friend':       'PLAY WITH A FRIEND',
             'btn-bot':          'PLAY VS DICE KING',
-            'btn-ranking':      '🏆 LEADERBOARD',
+            'btn-ranking':      'LEADERBOARD',
             'submenu-friend':   'PLAY WITH A FRIEND',
             'btn-create-room':  'CREATE A GAME',
             'code-label':       'GAME CODE',
@@ -152,8 +165,8 @@ const Settings = (() => {
             'turn-wait':        'WAITING',
             'connected':        'Connected',
             'disconnected':     'Disconnected. Reconnecting...',
-            'rules-btn':        '📖 GAME RULES',
-            'settings-btn':     '⚙ SETTINGS',
+            'rules-btn':        'GAME RULES',
+            'settings-btn':     'SETTINGS',
             'settings-title':   'SETTINGS',
             'lang-label':       '🌐 LANGUAGE',
             'music-lbl':        '🎵 Music',
@@ -166,6 +179,19 @@ const Settings = (() => {
             'rank-header-score':'BALANCE',
             'rank-header-record':'W · L',
             'rank-empty':       'No players in this rank',
+            'roll-prefix':      'ROLL',
+            'defi-label':       'CHALLENGE',
+            'gameover-win':     'VICTORY!',
+            'gameover-lose':    'DEFEAT',
+            'gameover-congrats':'CONGRATULATIONS',
+            'gameover-better':  'BETTER LUCK NEXT TIME',
+            'gameover-replay':  'PLAY AGAIN',
+            'player-you':       'YOU',
+            'player-opp':       'OPPONENT',
+            'rules-tab-jeu':    '🎲 Game',
+            'rules-tab-combos': '🃏 Combos',
+            'rules-tab-gains':  '💰 Rewards',
+            'rules-tab-rank':   '🏆 Ranking',
         },
     };
 
@@ -177,9 +203,8 @@ const Settings = (() => {
         state.lang = lang;
         localStorage.setItem('yams_lang', lang);
 
-        const set    = (sel, key) => { const el = document.querySelector(sel); if (el && T[lang][key] !== undefined) el.textContent = T[lang][key]; };
-        const setAll = (sel, key) => document.querySelectorAll(sel).forEach(el => { if (T[lang][key] !== undefined) el.textContent = T[lang][key]; });
-        const setPH  = (sel, key) => { const el = document.querySelector(sel); if (el && T[lang][key] !== undefined) el.placeholder = T[lang][key]; };
+        const set   = (sel, key) => { const el = document.querySelector(sel); if (el && T[lang][key] !== undefined) el.textContent = T[lang][key]; };
+        const setPH = (sel, key) => { const el = document.querySelector(sel); if (el && T[lang][key] !== undefined) el.placeholder = T[lang][key]; };
 
         // Login
         set('.login-brand-sub',               'brand-sub');
@@ -205,7 +230,6 @@ const Settings = (() => {
         set('#btn-join-queue .mbtn-text',   'btn-online');
         set('#btn-play-friend .mbtn-text',  'btn-friend');
         set('#btn-play-bot .mbtn-text',     'btn-bot');
-        set('#btn-ranking',                 'btn-ranking');
         set('#menu-friend .submenu-title',  'submenu-friend');
         set('#btn-create-room',             'btn-create-room');
         set('.code-label',                  'code-label');
@@ -238,15 +262,57 @@ const Settings = (() => {
         const valBtn = document.querySelector('#btn-validate .btn-text');
         if (valBtn) valBtn.textContent = T[lang]['btn-validate-text'];
 
-        // Shared corner buttons
-        setAll('.rules-login-btn',   'rules-btn');
-        setAll('.settings-open-btn', 'settings-btn');
+        // Shared corner buttons — update only the text node, keep SVG icon
+        const setIconBtn = (sel, key) => {
+            document.querySelectorAll(sel).forEach(btn => {
+                const lastNode = [...btn.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+                if (lastNode) lastNode.textContent = ' ' + T[lang][key];
+            });
+        };
+        setIconBtn('.rules-login-btn',   'rules-btn');
+        setIconBtn('.settings-open-btn', 'settings-btn');
+        setIconBtn('#btn-ranking',        'btn-ranking');
 
         // Settings panel
         set('#settings-panel-title', 'settings-title');
         set('#settings-lang-label',  'lang-label');
         set('#settings-music-label', 'music-lbl');
         set('#settings-sfx-label',   'sfx-lbl');
+
+        // Défi card
+        const defiLbl = document.querySelector('.defi-card-label');
+        if (defiLbl) defiLbl.textContent = T[lang]['defi-label'];
+
+        // Game over replay button
+        const replayBtn = document.getElementById('game-over-replay');
+        if (replayBtn) replayBtn.textContent = T[lang]['gameover-replay'];
+
+        // Rules tab labels
+        const tabMap = { gameplay: 'rules-tab-jeu', combos: 'rules-tab-combos', gains: 'rules-tab-gains', ranking: 'rules-tab-rank' };
+        document.querySelectorAll('.rules-tab').forEach(btn => {
+            const key = tabMap[btn.dataset.rulesTab];
+            if (key && T[lang][key]) btn.textContent = T[lang][key];
+        });
+
+        // Rules content (full HTML per language)
+        const RULES = {
+            fr: {
+                gameplay: `<section class="rules-section"><h3>🎯 But du jeu</h3><p>Marquer plus de points que l'adversaire en réalisant des combinaisons avec les dés, ou réussir un <strong>alignement de 5 pions</strong> pour gagner instantanément.</p></section><section class="rules-section"><h3>🎲 Déroulement d'un tour</h3><p>À son tour, le joueur lance les <strong>5 dés jusqu'à 3 fois</strong>. Après chaque lancer, il peut écarter des dés et relancer les autres. Il choisit ensuite une combinaison et place un pion sur la case correspondante du plateau.</p></section><section class="rules-section"><h3>📊 Alignements sur le plateau</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Alignement de 3</span><span class="combo-desc">1 point</span></div><div class="rules-combo"><span class="combo-name">Alignement de 4</span><span class="combo-desc">2 points</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Alignement de 5</span><span class="combo-desc">Victoire instantanée !</span></div></div><p class="rules-note">Les alignements peuvent être horizontaux, verticaux ou diagonaux.</p></section>`,
+                combos: `<section class="rules-section"><h3>🃏 Combinaisons disponibles</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Brelan 1 à 6</span><span class="combo-desc">3 dés identiques (ex: 3×4)</span></div><div class="rules-combo"><span class="combo-name">Full</span><span class="combo-desc">Un brelan + une paire</span></div><div class="rules-combo"><span class="combo-name">Carré</span><span class="combo-desc">4 dés identiques</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Yam</span><span class="combo-desc">5 dés identiques — le plus puissant !</span></div><div class="rules-combo"><span class="combo-name">Suite</span><span class="combo-desc">1-2-3-4-5 ou 2-3-4-5-6</span></div><div class="rules-combo"><span class="combo-name">≤ 8</span><span class="combo-desc">Somme des 5 dés inférieure ou égale à 8</span></div><div class="rules-combo"><span class="combo-name">Sec</span><span class="combo-desc">Combo non-brelan réalisée dès le 1er lancer</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Défi</span><span class="combo-desc">Déclaré avant le 2e lancer — réussir une combo non-brelan pour booster les gains</span></div></div></section><section class="rules-section"><h3>🎴 Le Défi</h3><p>Avant votre 2e lancer, cliquez sur la <strong>carte Défi</strong> à droite. Si vous réussissez une combinaison non-brelan, vous marquez des points bonus. Risqué mais récompensé !</p></section>`,
+                gains: `<section class="rules-section"><h3>💰 Gains par victoire</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Victoire normale</span><span class="combo-desc">+550 $</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Victoire ligne de 5</span><span class="combo-desc">+1 000 $</span></div></div></section><section class="rules-section"><h3>📉 Pertes par défaite</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Iron / Bronze / Silver</span><span class="combo-desc">−200 $ (défaite normale) · −500 $ (ligne de 5)</span></div><div class="rules-combo"><span class="combo-name">Gold / Platinum</span><span class="combo-desc">−350 $ (défaite normale) · −500 $ (ligne de 5)</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Diamond / Ascendant / Immortal</span><span class="combo-desc">−450 $ (défaite normale) · −500 $ (ligne de 5)</span></div></div><p class="rules-note">Les rangs bas (Iron→Silver) bénéficient d'une protection pour faciliter la progression.</p></section>`,
+                ranking: `<section class="rules-section"><h3>🏆 Modes affectant le classement</h3><div class="rules-combos"><div class="rules-combo rules-combo-gold"><span class="combo-name">En ligne (PvP)</span><span class="combo-desc">✅ Affecte le classement</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Bot — Difficile</span><span class="combo-desc">✅ Affecte le classement</span></div><div class="rules-combo"><span class="combo-name">Bot — Facile</span><span class="combo-desc">❌ Pas d'impact sur le classement</span></div><div class="rules-combo"><span class="combo-name">Bot — Intermédiaire</span><span class="combo-desc">❌ Pas d'impact sur le classement</span></div><div class="rules-combo"><span class="combo-name">Amis (room privée)</span><span class="combo-desc">❌ Pas d'impact sur le classement</span></div></div></section><section class="rules-section"><h3>🎖️ Paliers de rangs</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name" style="color:#9eaab5">Iron</span><span class="combo-desc">0 $</span></div><div class="rules-combo"><span class="combo-name" style="color:#cd7f32">Bronze</span><span class="combo-desc">500 $</span></div><div class="rules-combo"><span class="combo-name" style="color:#b0b8c1">Silver</span><span class="combo-desc">1 500 $</span></div><div class="rules-combo"><span class="combo-name" style="color:#ffd700">Gold</span><span class="combo-desc">4 000 $</span></div><div class="rules-combo"><span class="combo-name" style="color:#70c8c8">Platinum</span><span class="combo-desc">10 000 $</span></div><div class="rules-combo"><span class="combo-name" style="color:#a29bfe">Diamond</span><span class="combo-desc">25 000 $</span></div><div class="rules-combo"><span class="combo-name" style="color:#00e676">Ascendant</span><span class="combo-desc">50 000 $</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name" style="color:#ff4757">Immortal</span><span class="combo-desc">100 000 $</span></div></div></section>`,
+            },
+            en: {
+                gameplay: `<section class="rules-section"><h3>🎯 Goal</h3><p>Score more points than your opponent by making dice combinations, or complete a <strong>5-chip alignment</strong> to win instantly.</p></section><section class="rules-section"><h3>🎲 Turn flow</h3><p>On your turn, roll <strong>5 dice up to 3 times</strong>. After each roll, you may hold some dice and reroll the rest. Then choose a combination and place a chip on the matching cell of the board.</p></section><section class="rules-section"><h3>📊 Board alignments</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">3-chip line</span><span class="combo-desc">1 point</span></div><div class="rules-combo"><span class="combo-name">4-chip line</span><span class="combo-desc">2 points</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">5-chip line</span><span class="combo-desc">Instant victory!</span></div></div><p class="rules-note">Alignments can be horizontal, vertical or diagonal.</p></section>`,
+                combos: `<section class="rules-section"><h3>🃏 Available combinations</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Three of a kind (1–6)</span><span class="combo-desc">3 identical dice (e.g. 3×4)</span></div><div class="rules-combo"><span class="combo-name">Full House</span><span class="combo-desc">Three of a kind + a pair</span></div><div class="rules-combo"><span class="combo-name">Four of a kind</span><span class="combo-desc">4 identical dice</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Yam</span><span class="combo-desc">5 identical dice — the most powerful!</span></div><div class="rules-combo"><span class="combo-name">Straight</span><span class="combo-desc">1-2-3-4-5 or 2-3-4-5-6</span></div><div class="rules-combo"><span class="combo-name">≤ 8</span><span class="combo-desc">Sum of all 5 dice is 8 or less</span></div><div class="rules-combo"><span class="combo-name">First-roll</span><span class="combo-desc">Non-three-of-a-kind combo on the 1st roll</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Challenge</span><span class="combo-desc">Declared before 2nd roll — land a non-three combo for bonus points</span></div></div></section><section class="rules-section"><h3>🎴 The Challenge</h3><p>Before your 2nd roll, click the <strong>Challenge card</strong> on the right. If you land a non-three-of-a-kind combo, you earn bonus points. Risky but rewarding!</p></section>`,
+                gains: `<section class="rules-section"><h3>💰 Win rewards</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Normal win</span><span class="combo-desc">+$550</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">5-in-a-row win</span><span class="combo-desc">+$1,000</span></div></div></section><section class="rules-section"><h3>📉 Loss penalties</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name">Iron / Bronze / Silver</span><span class="combo-desc">−$200 (normal loss) · −$500 (5-in-a-row)</span></div><div class="rules-combo"><span class="combo-name">Gold / Platinum</span><span class="combo-desc">−$350 (normal loss) · −$500 (5-in-a-row)</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Diamond / Ascendant / Immortal</span><span class="combo-desc">−$450 (normal loss) · −$500 (5-in-a-row)</span></div></div><p class="rules-note">Lower ranks (Iron→Silver) benefit from reduced penalties to help progression.</p></section>`,
+                ranking: `<section class="rules-section"><h3>🏆 Modes affecting ranking</h3><div class="rules-combos"><div class="rules-combo rules-combo-gold"><span class="combo-name">Online (PvP)</span><span class="combo-desc">✅ Affects ranking</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name">Bot — Hard</span><span class="combo-desc">✅ Affects ranking</span></div><div class="rules-combo"><span class="combo-name">Bot — Easy</span><span class="combo-desc">❌ No ranking impact</span></div><div class="rules-combo"><span class="combo-name">Bot — Medium</span><span class="combo-desc">❌ No ranking impact</span></div><div class="rules-combo"><span class="combo-name">Private room</span><span class="combo-desc">❌ No ranking impact</span></div></div></section><section class="rules-section"><h3>🎖️ Rank thresholds</h3><div class="rules-combos"><div class="rules-combo"><span class="combo-name" style="color:#9eaab5">Iron</span><span class="combo-desc">$0</span></div><div class="rules-combo"><span class="combo-name" style="color:#cd7f32">Bronze</span><span class="combo-desc">$500</span></div><div class="rules-combo"><span class="combo-name" style="color:#b0b8c1">Silver</span><span class="combo-desc">$1,500</span></div><div class="rules-combo"><span class="combo-name" style="color:#ffd700">Gold</span><span class="combo-desc">$4,000</span></div><div class="rules-combo"><span class="combo-name" style="color:#70c8c8">Platinum</span><span class="combo-desc">$10,000</span></div><div class="rules-combo"><span class="combo-name" style="color:#a29bfe">Diamond</span><span class="combo-desc">$25,000</span></div><div class="rules-combo"><span class="combo-name" style="color:#00e676">Ascendant</span><span class="combo-desc">$50,000</span></div><div class="rules-combo rules-combo-gold"><span class="combo-name" style="color:#ff4757">Immortal</span><span class="combo-desc">$100,000</span></div></div></section>`,
+            },
+        };
+        document.querySelectorAll('.rules-tab-content').forEach(div => {
+            const tab = div.dataset.rulesContent;
+            if (RULES[lang] && RULES[lang][tab]) div.innerHTML = RULES[lang][tab];
+        });
 
         // Lang button active state
         document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));

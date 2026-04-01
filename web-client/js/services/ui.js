@@ -37,7 +37,8 @@ const UIManager = (() => {
 
     // ---- Roll Counter ----
     function updateRollCounter(current, max) {
-        document.getElementById('roll-counter').textContent = `LANCE ${current}/${max}`;
+        const _prefix = typeof Settings !== 'undefined' ? Settings.t('roll-prefix') : 'LANCE';
+        document.getElementById('roll-counter').textContent = `${_prefix} ${current}/${max}`;
     }
 
     // ---- Turn Indicator ----

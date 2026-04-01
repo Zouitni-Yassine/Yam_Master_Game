@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 80" width="70" height="80">
+  <style>.col{fill:none;stroke:#C8A96E;stroke-linecap:round;stroke-linejoin:round}.dot{fill:#C8A96E}</style>
+  <circle cx="25" cy="24" r="12" class="col" stroke-width="1.6"/>
+  <circle cx="45" cy="24" r="12" class="col" stroke-width="1.6"/>
+  <path class="col" stroke-width="1.8" d="M5 68 Q5 50 25 48 Q35 46 45 48 Q65 50 65 68" fill="none"/>
+  <path class="col" stroke-width="1.4" d="M28 34 Q35 30 42 34 L42 44 Q35 50 28 44Z" fill="none"/>
+  <circle cx="35" cy="40" r="2" class="dot" opacity="0.7"/>
+</svg>

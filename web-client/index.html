@@ -54,7 +54,7 @@
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
-        <button class="settings-open-btn">⚙ PARAMÈTRES</button>
+        <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"> PARAMÈTRES</button>
         <!-- Top bar -->
         <div id="top-bar">
             <!-- Player score badge (left) -->
@@ -134,8 +134,8 @@
         <div id="login-overlay">
             <canvas id="login-canvas"></canvas>
 
-            <button class="settings-open-btn">⚙ PARAMÈTRES</button>
-            <button id="btn-rules-login" class="rules-login-btn">📖 RÈGLES DU JEU</button>
+            <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"> PARAMÈTRES</button>
+            <button id="btn-rules-login" class="rules-login-btn"><img src="/icons/icon-game-rules.svg" class="btn-icon-svg"> RÈGLES DU JEU</button>
 
             <div class="login-card">
                 <div class="login-brand">
@@ -151,11 +151,11 @@
 
                 <div class="login-form" id="login-form">
                     <div class="login-field-wrap">
-                        <img src="/logo/pseudo.svg" class="field-icon-img">
+                        <img src="/login icons/icon-username.svg" class="field-icon-img">
                         <input id="login-username" class="login-input" type="text" placeholder="Nom d'utilisateur" maxlength="20" autocomplete="off">
                     </div>
                     <div class="login-field-wrap">
-                        <img src="/logo/motdepasse.svg" class="field-icon-img">
+                        <img src="/login icons/icon-password-login.svg" class="field-icon-img">
                         <input id="login-password" class="login-input" type="password" placeholder="Mot de passe" maxlength="40">
                     </div>
                     <button id="btn-login" class="login-btn">
@@ -187,29 +187,29 @@
                     <!-- Prénom + Nom -->
                     <div class="reg-row">
                         <div class="login-field-wrap">
-                            <img src="/logo/prenom.svg" class="field-icon-img">
+                            <img src="/login icons/icon-firstname.svg" class="field-icon-img">
                             <input id="reg-firstname" class="login-input" type="text" placeholder="Prénom" maxlength="30" autocomplete="given-name">
                         </div>
                         <div class="login-field-wrap">
-                            <img src="/logo/nom.svg" class="field-icon-img">
+                            <img src="/login icons/icon-lastname.svg" class="field-icon-img">
                             <input id="reg-lastname" class="login-input" type="text" placeholder="Nom" maxlength="30" autocomplete="family-name">
                         </div>
                     </div>
 
                     <!-- Username -->
                     <div class="login-field-wrap">
-                        <img src="/logo/pseudo.svg" class="field-icon-img">
+                        <img src="/login icons/icon-nickname.svg" class="field-icon-img">
                         <input id="reg-username" class="login-input" type="text" placeholder="Pseudo (affiché en jeu)" maxlength="20" autocomplete="off">
                     </div>
 
                     <!-- Email + Date -->
                     <div class="reg-row">
                         <div class="login-field-wrap">
-                            <img src="/logo/email.svg" class="field-icon-img">
+                            <img src="/login icons/icon-email.svg" class="field-icon-img">
                             <input id="reg-email" class="login-input" type="email" placeholder="Email" maxlength="80" autocomplete="email">
                         </div>
                         <div class="login-field-wrap">
-                            <img src="/logo/date.svg" class="field-icon-img">
+                            <img src="/login icons/icon-dob.svg" class="field-icon-img">
                             <input id="reg-dob" class="login-input" type="date" placeholder="Date de naissance">
                         </div>
                     </div>
@@ -217,11 +217,11 @@
                     <!-- Mot de passe + Confirmer -->
                     <div class="reg-row">
                         <div class="login-field-wrap">
-                            <img src="/logo/motdepasse.svg" class="field-icon-img">
+                            <img src="/login icons/icon-password-register.svg" class="field-icon-img">
                             <input id="reg-password" class="login-input" type="password" placeholder="Mot de passe (min. 8)" maxlength="40">
                         </div>
                         <div class="login-field-wrap">
-                            <img src="/logo/confirmer.svg" class="field-icon-img">
+                            <img src="/login icons/icon-confirm-password.svg" class="field-icon-img">
                             <input id="reg-password-confirm" class="login-input" type="password" placeholder="Confirmer" maxlength="40">
                         </div>
                     </div>
@@ -242,7 +242,7 @@
         <!-- Main Menu Overlay -->
         <div id="queue-overlay" class="hidden">
             <canvas id="menu-bg-canvas"></canvas>
-            <button class="settings-open-btn">⚙ PARAMÈTRES</button>
+            <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"> PARAMÈTRES</button>
             <div class="menu-layout">
 
                 <!-- Player chip top -->
@@ -252,7 +252,7 @@
                         <span id="player-username-display" class="menu-chip-name">—</span>
                         <span id="menu-player-score" class="menu-chip-score">$1,000</span>
                     </div>
-                    <button id="btn-ranking" class="ranking-btn">🏆 CLASSEMENT</button>
+                    <button id="btn-ranking" class="ranking-btn"><img src="/icons/icon-leaderboard.svg" class="btn-icon-svg"> CLASSEMENT</button>
                 </div>
 
                 <!-- Die + Title -->
@@ -265,15 +265,15 @@
                 <!-- Main buttons -->
                 <div id="menu-main" class="menu-section">
                     <button id="btn-join-queue" class="menu-btn primary" disabled>
-                        <img src="/logo/online.png" class="mbtn-logo">
+                        <img src="/icons/icon-play-online.svg" class="mbtn-logo">
                         <span class="mbtn-text">JOUER EN LIGNE</span>
                     </button>
                     <button id="btn-play-friend" class="menu-btn">
-                        <img src="/logo/friends.png" class="mbtn-logo">
+                        <img src="/icons/icon-play-friend.svg" class="mbtn-logo">
                         <span class="mbtn-text">JOUER AVEC UN AMI</span>
                     </button>
                     <button id="btn-play-bot" class="menu-btn">
-                        <img src="/logo/ai.png" class="mbtn-logo">
+                        <img src="/icons/icon-dice-king.svg" class="mbtn-logo">
                         <span class="mbtn-text">JOUER CONTRE LE DICE KING</span>
                     </button>
                 </div>
@@ -300,15 +300,15 @@
                 <div id="menu-bot" class="menu-section hidden">
                     <div class="submenu-title">CHOISIR LA DIFFICULTÉ DU DICE KING</div>
                     <button class="menu-btn difficulty" data-diff="easy">
-                        <img src="/logo/easy.png" class="diff-logo">
+                        <img src="/icons/icon-easy.svg" class="diff-logo">
                         <div class="diff-info"><span class="diff-name">FACILE</span><span class="diff-desc">Pour s'échauffer</span></div>
                     </button>
                     <button class="menu-btn difficulty" data-diff="medium">
-                        <img src="/logo/medium.png" class="diff-logo">
+                        <img src="/icons/icon-medium.svg" class="diff-logo">
                         <div class="diff-info"><span class="diff-name">MOYEN</span><span class="diff-desc">Un vrai défi</span></div>
                     </button>
                     <button class="menu-btn difficulty hard" data-diff="hard">
-                        <img src="/logo/hard.png" class="diff-logo">
+                        <img src="/icons/icon-hard.svg" class="diff-logo">
                         <div class="diff-info"><span class="diff-name">DIFFICILE</span><span class="diff-desc">Bonne chance...</span></div>
                     </button>
                     <button id="btn-back-bot" class="menu-btn back">← RETOUR</button>
@@ -322,7 +322,7 @@
                 </div>
 
             </div>
-            <button id="btn-rules" class="rules-login-btn">📖 RÈGLES DU JEU</button>
+            <button id="btn-rules" class="rules-login-btn"><img src="/icons/icon-game-rules.svg" class="btn-icon-svg"> RÈGLES DU JEU</button>
         </div>
 
         <!-- Ranking overlay -->

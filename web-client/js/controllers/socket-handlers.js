@@ -133,7 +133,8 @@ const GameSocketHandlers = {
             if (data.playerName)   { const el = document.getElementById('player-badge-name');   if (el) el.textContent = data.playerName; }
             if (data.opponentName) { const el = document.getElementById('opponent-badge-name'); if (el) el.textContent = data.opponentName; }
             renderAvatar(document.getElementById('player-badge-avatar'),   data.playerAvatar);
-            renderAvatar(document.getElementById('opponent-badge-avatar'), data.opponentAvatar);
+            const oppAv = data.opponentName === 'DiceKing' ? '/icons/icon-dice-king.svg' : data.opponentAvatar;
+            renderAvatar(document.getElementById('opponent-badge-avatar'), oppAv);
 
             UIManager.showQueueOverlay(false);
             document.getElementById('game-bg').style.display = 'block';
@@ -252,12 +253,13 @@ const GameSocketHandlers = {
 
                 const playerScore   = (data.playerScore   || 0) * 100;
                 const opponentScore = (data.opponentScore || 0) * 100;
-                const playerName   = document.getElementById('player-badge-name')?.textContent   || 'VOUS';
-                const opponentName = document.getElementById('opponent-badge-name')?.textContent || 'ADVERSAIRE';
+                const _t = typeof Settings !== 'undefined' ? k => Settings.t(k) : k => k;
+                const playerName   = document.getElementById('player-badge-name')?.textContent   || _t('player-you');
+                const opponentName = document.getElementById('opponent-badge-name')?.textContent || _t('player-opp');
 
-                document.getElementById('game-over-title').textContent    = isWinner ? 'VICTOIRE !' : 'DÉFAITE';
+                document.getElementById('game-over-title').textContent    = isWinner ? _t('gameover-win') : _t('gameover-lose');
                 document.getElementById('game-over-title').className      = 'game-over-title ' + (isWinner ? 'victory' : 'defeat');
-                document.getElementById('game-over-subtitle').textContent = isWinner ? 'FÉLICITATIONS' : 'MEILLEURE CHANCE LA PROCHAINE FOIS';
+                document.getElementById('game-over-subtitle').textContent = isWinner ? _t('gameover-congrats') : _t('gameover-better');
                 document.getElementById('game-over-player-name').textContent   = playerName;
                 document.getElementById('game-over-opponent-name').textContent = opponentName;
                 document.getElementById('game-over-player-score').textContent   = '$' + playerScore;

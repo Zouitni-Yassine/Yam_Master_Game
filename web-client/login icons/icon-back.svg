@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 70" width="70" height="70">
+  <style>.col{fill:none;stroke:#C8A96E;stroke-linecap:round;stroke-linejoin:round}.dot{fill:#C8A96E}</style>
+  <circle cx="35" cy="35" r="28" class="col" stroke-width="1.4" opacity="0.4"/>
+  <circle cx="35" cy="35" r="22" class="col" stroke-width="0.8" opacity="0.2"/>
+  <path class="col" stroke-width="2.5" d="M44 35 L26 35 M33 27 L25 35 L33 43" fill="none"/>
+  <circle cx="35" cy="9" r="2" class="dot" opacity="0.4"/>
+  <circle cx="35" cy="61" r="2" class="dot" opacity="0.4"/>
+  <circle cx="9" cy="35" r="2" class="dot" opacity="0.4"/>
+  <circle cx="61" cy="35" r="2" class="dot" opacity="0.4"/>
+</svg>

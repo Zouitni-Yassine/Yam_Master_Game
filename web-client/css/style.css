@@ -1620,6 +1620,14 @@ body {
     z-index: 5;
     transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
+.btn-icon-svg {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 2px;
+    filter: invert(85%) sepia(30%) saturate(400%) hue-rotate(5deg) brightness(95%);
+}
+
 .settings-open-btn:hover {
     border-color: #c9962a;
     color: #f0c040;
