@@ -56,7 +56,7 @@ function _renderLeaderboard() {
         const score = p.score || 0;
         const rank  = getRank(score);
         const av    = p.avatar || '🎲';
-        const avHtml = av.startsWith('data:') ? `<img src="${av}">` : av;
+        const avHtml = (av.startsWith('data:') || av.startsWith('/')) ? `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : av;
         const rowCls = globalPos === 1 ? 'ranking-row top-1' : globalPos <= 3 ? 'ranking-row top-3' : 'ranking-row';
         const numCls = globalPos === 1 ? 'rcol-num pos-1' : globalPos === 2 ? 'rcol-num pos-2' : globalPos === 3 ? 'rcol-num pos-3' : 'rcol-num';
         return `<div class="${rowCls}">
@@ -77,7 +77,7 @@ function _renderLeaderboard() {
 function renderAvatar(el, av) {
     if (!el) return;
     if (av && (av.startsWith('data:') || av.startsWith('/'))) {
-        el.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;">`;
+        el.innerHTML = `<img src="${av}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
     } else {
         el.textContent = av || '🎲';
     }
@@ -126,6 +126,9 @@ const GameSocketHandlers = {
             state.idPlayer = data.idPlayer; state.idOpponent = data.idOpponent;
             state.opponentRollsCounter = 0;
             state.opponentInitialized  = false;
+            state.gameMode = data.mode || 'online';
+            state.botDifficulty = data.botDifficulty || null;
+            state.gameId = data.idGame || null;
             const isPlayer1 = data.playerKey === 'player:1';
             ChipSystem.setPlayerSide(isPlayer1);
 
@@ -272,13 +275,51 @@ const GameSocketHandlers = {
                 modal.classList.add('show');
                 gsap.from('.game-over-card', { scale: 0.8, opacity: 0, duration: 0.5, ease: 'back.out(1.4)' });
 
-                document.getElementById('game-over-replay').onclick = () => {
+                const goToMenu = () => {
                     modal.classList.remove('show');
                     DiceSystem.showDice(false);
                     Characters.show(false);
                     document.getElementById('game-bg').style.display = 'none';
+                    // Reset to main menu section
+                    ['menu-main','menu-friend','menu-bot','menu-waiting'].forEach(s => {
+                        const el = document.getElementById(s);
+                        if (el) el.classList.toggle('hidden', s !== 'menu-main');
+                    });
                     UIManager.showQueueOverlay(true);
+                    UIManager.setQueueButtons('connected');
+                    const status = document.getElementById('game-over-rematch-status');
+                    if (status) { status.textContent = ''; status.classList.add('hidden'); }
+                    const replayBtn = document.getElementById('game-over-replay');
+                    if (replayBtn) { replayBtn.textContent = 'REJOUER'; replayBtn.disabled = false; }
+                    SocketClient.gameoverLeave(state.gameId);
+                    state.inGame = false;
                 };
+
+                const doReplay = () => {
+                    const statusEl = document.getElementById('game-over-rematch-status');
+                    if (state.gameMode === 'bot') {
+                        modal.classList.remove('show');
+                        DiceSystem.showDice(false);
+                        Characters.show(false);
+                        document.getElementById('game-bg').style.display = 'none';
+                        SocketClient.rematchRequest('bot', state.botDifficulty);
+                    } else if (state.gameMode === 'online') {
+                        modal.classList.remove('show');
+                        DiceSystem.showDice(false);
+                        Characters.show(false);
+                        document.getElementById('game-bg').style.display = 'none';
+                        UIManager.showQueueOverlay(true);
+                        SocketClient.rematchRequest('online', null);
+                    } else {
+                        // friend — request rematch, wait for opponent
+                        if (statusEl) { statusEl.textContent = 'En attente de votre adversaire...'; statusEl.classList.remove('hidden'); }
+                        document.getElementById('game-over-replay').disabled = true;
+                        SocketClient.rematchRequest('friend', null, state.gameId);
+                    }
+                };
+
+                document.getElementById('game-over-replay').onclick = doReplay;
+                document.getElementById('game-over-menu').onclick   = goToMenu;
             }
             if (data.grid && state.currentGrid?.grid) {
                 data.grid.forEach((row, ri) => {
@@ -344,6 +385,13 @@ const GameSocketHandlers = {
             // Store avatar for in-game badge
             state.playerAvatar = av;
             state.playerName = data.username;
+
+            // Show reconnect banner if a game is pending
+            if (data.pendingReconnect) {
+                setTimeout(() => {
+                    if (typeof PendingReconnect !== 'undefined') PendingReconnect.show(data.pendingMode || 'online');
+                }, 600);
+            }
         });
 
         SocketClient.onUserError(data => {
@@ -354,5 +402,88 @@ const GameSocketHandlers = {
             _rankingData = data;
             _renderLeaderboard();
         });
+
+        SocketClient.onSurrendered(data => {
+            // Hide surrender modal if still open
+            if (typeof SurrenderModal !== 'undefined') SurrenderModal.hide();
+            // game.grid.view-state with winner will trigger game-over modal automatically
+            // but for the surrenderer (by:'you') we can show immediate feedback
+            if (data.by === 'you') {
+                state.inGame = false;
+            }
+        });
+
+        SocketClient.onOpponentDisconnected(data => {
+            const overlay = document.getElementById('opponent-disconnect-overlay');
+            const countdown = document.getElementById('disconnect-countdown');
+            if (overlay) overlay.classList.remove('hidden');
+            if (countdown) countdown.textContent = data.secondsLeft;
+        });
+
+        SocketClient.onOpponentReconnected(() => {
+            const overlay = document.getElementById('opponent-disconnect-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        });
+
+        SocketClient.onOpponentTimeout(() => {
+            const overlay = document.getElementById('opponent-disconnect-overlay');
+            if (overlay) overlay.classList.add('hidden');
+            // Winner result comes via game.grid.view-state
+        });
+
+        SocketClient.onOpponentLeftGameover(() => {
+            const statusEl = document.getElementById('game-over-rematch-status');
+            if (statusEl) { statusEl.textContent = 'L\'adversaire a quitté la partie.'; statusEl.classList.remove('hidden'); }
+            const replayBtn = document.getElementById('game-over-replay');
+            if (replayBtn) { replayBtn.textContent = 'REJOUER'; replayBtn.disabled = true; }
+        });
+
+        SocketClient.onRematchRequested(() => {
+            // Opponent wants a rematch — show prompt in game-over modal
+            const statusEl = document.getElementById('game-over-rematch-status');
+            if (statusEl) { statusEl.textContent = 'Votre adversaire veut une revanche !'; statusEl.classList.remove('hidden'); }
+            const replayBtn = document.getElementById('game-over-replay');
+            if (replayBtn) replayBtn.textContent = 'ACCEPTER LA REVANCHE';
+        });
+
+        SocketClient.onRematchAccepted(() => {
+            // Both accepted — game.start will come right after, just reset UI
+            const modal = document.getElementById('game-over-modal');
+            if (modal) modal.classList.remove('show');
+            const replayBtn = document.getElementById('game-over-replay');
+            if (replayBtn) { replayBtn.textContent = 'REJOUER'; replayBtn.disabled = false; }
+            const statusEl = document.getElementById('game-over-rematch-status');
+            if (statusEl) { statusEl.textContent = ''; statusEl.classList.add('hidden'); }
+        });
+
+        SocketClient.onRematchCancelled(() => {
+            const statusEl = document.getElementById('game-over-rematch-status');
+            if (statusEl) { statusEl.textContent = 'L\'adversaire a refusé la revanche.'; statusEl.classList.remove('hidden'); }
+            const replayBtn = document.getElementById('game-over-replay');
+            if (replayBtn) { replayBtn.textContent = 'REJOUER'; replayBtn.disabled = false; }
+        });
+
+        SocketClient.onReconnected(data => {
+            state.inQueue = false; state.inGame = true;
+            state.idPlayer = data.idPlayer; state.idOpponent = data.idOpponent;
+            state.opponentRollsCounter = 0;
+            state.opponentInitialized  = false;
+            const isPlayer1 = data.playerKey === 'player:1';
+            ChipSystem.setPlayerSide(isPlayer1);
+
+            if (data.playerName)   { const el = document.getElementById('player-badge-name');   if (el) el.textContent = data.playerName; }
+            if (data.opponentName) { const el = document.getElementById('opponent-badge-name'); if (el) el.textContent = data.opponentName; }
+            renderAvatar(document.getElementById('player-badge-avatar'),   data.playerAvatar);
+            const oppAv = data.opponentName === 'DiceKing' ? '/icons/icon-dice-king.svg' : data.opponentAvatar;
+            renderAvatar(document.getElementById('opponent-badge-avatar'), oppAv);
+
+            UIManager.showQueueOverlay(false);
+            document.getElementById('game-bg').style.display = 'block';
+            DiceSystem.showDice(true);
+            Characters.setBot(data.opponentName === 'DiceKing');
+            Characters.setPlayerKey(data.playerKey);
+            Characters.show(true);
+        });
+
     }
 };

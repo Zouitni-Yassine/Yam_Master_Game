@@ -223,7 +223,7 @@ const GameService = {
 
         findGameIndexBySocketId: (games, socketId) => {
             for (let i = 0; i < games.length; i++) {
-                if (games[i].player1Socket.id === socketId || games[i].player2Socket.id === socketId) return i;
+                if (!games[i].ended && (games[i].player1Socket.id === socketId || games[i].player2Socket.id === socketId)) return i;
             }
             return -1;
         },

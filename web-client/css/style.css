@@ -212,6 +212,25 @@ body {
     background: linear-gradient(135deg, #3a2f10, #2a1f08);
     box-shadow: 0 0 20px rgba(201, 150, 42, 0.3);
 }
+.game-over-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.game-over-menu-btn {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.15);
+    color: #a08050;
+}
+.game-over-menu-btn:hover { background: rgba(255,255,255,0.09); box-shadow: none; }
+.game-over-rematch-status {
+    font-size: 0.78rem;
+    color: #d4a44c;
+    font-family: 'Cinzel', serif;
+    margin-top: 16px;
+    letter-spacing: 0.06em;
+    background: rgba(212,164,76,0.08);
+    border: 1px solid rgba(212,164,76,0.3);
+    border-radius: 8px;
+    padding: 10px 16px;
+}
+.game-over-rematch-status.hidden { display: none; }
 
 /* ---- UI Overlay ---- */
 #ui-overlay {
@@ -841,6 +860,119 @@ body {
 .qr-btn:hover { background: rgba(212,164,76,0.22); border-color: #d4a44c; }
 .qr-btn-icon { width: 32px; height: 32px; filter: invert(75%) sepia(40%) saturate(500%) hue-rotate(5deg); }
 .qr-btn-label { color: #d4a44c; }
+
+/* ---- Surrender button ---- */
+.surrender-btn {
+    background: rgba(180, 40, 40, 0.12) !important;
+    border-color: rgba(180, 40, 40, 0.4) !important;
+    color: #e05555 !important;
+    font-size: 0.65rem !important;
+    padding: 6px 10px !important;
+    min-width: unset !important;
+}
+.surrender-btn:hover { background: rgba(180, 40, 40, 0.25) !important; }
+
+/* ---- Game Prompt Modals (surrender confirm, opponent disconnect) ---- */
+.game-prompt-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+}
+.game-prompt-modal.hidden { display: none; }
+.game-prompt-card {
+    background: #0d0a04;
+    border: 1px solid rgba(212,164,76,0.45);
+    border-radius: 16px;
+    padding: 32px 36px;
+    text-align: center;
+    max-width: 360px;
+    width: 90%;
+}
+.game-prompt-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: #d4a44c;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+}
+.game-prompt-sub {
+    color: #a08050;
+    font-size: 0.82rem;
+    margin-bottom: 18px;
+}
+.game-prompt-countdown {
+    font-family: 'Cinzel', serif;
+    font-size: 2.8rem;
+    color: #d4a44c;
+    margin: 8px 0 14px;
+}
+.game-prompt-note { color: #6a5030; font-size: 0.75rem; }
+.game-prompt-actions { display: flex; gap: 12px; justify-content: center; margin-top: 4px; }
+.game-prompt-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid;
+    transition: background 0.2s;
+}
+.game-prompt-btn.cancel { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15); color: #a08050; }
+.game-prompt-btn.cancel:hover { background: rgba(255,255,255,0.08); }
+.game-prompt-btn.confirm { background: rgba(180,40,40,0.15); border-color: rgba(180,40,40,0.5); color: #e05555; }
+.game-prompt-btn.confirm:hover { background: rgba(180,40,40,0.3); }
+
+/* ---- Reconnect Banner ---- */
+.reconnect-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 5000;
+    background: linear-gradient(90deg, #0d0a04, #1a1200, #0d0a04);
+    border-bottom: 1px solid rgba(212,164,76,0.5);
+    padding: 10px 20px;
+}
+.reconnect-banner.hidden { display: none; }
+.reconnect-banner-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.reconnect-banner-text {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: #d4a44c;
+    letter-spacing: 0.1em;
+}
+.reconnect-banner-btn {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    padding: 6px 16px;
+    background: rgba(212,164,76,0.15);
+    border: 1px solid rgba(212,164,76,0.6);
+    border-radius: 6px;
+    color: #d4a44c;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.reconnect-banner-btn:hover { background: rgba(212,164,76,0.28); }
+.reconnect-banner-dismiss {
+    background: none;
+    border: none;
+    color: #6a5030;
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+}
 
 /* ---- QR Modal ---- */
 .qr-modal {

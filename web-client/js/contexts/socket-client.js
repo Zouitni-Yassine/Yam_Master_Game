@@ -25,6 +25,15 @@ const SocketClient = (() => {
     let onUserLoggedCallback = null;
     let onUserErrorCallback = null;
     let onRankingListCallback = null;
+    let onSurrenderedCallback = null;
+    let onOpponentDisconnectedCallback = null;
+    let onOpponentReconnectedCallback = null;
+    let onOpponentTimeoutCallback = null;
+    let onReconnectedCallback = null;
+    let onRematchRequestedCallback = null;
+    let onRematchAcceptedCallback  = null;
+    let onRematchCancelledCallback = null;
+    let onOpponentLeftGameoverCallback = null;
 
     function connect() {
         socket = io(SERVER_URL, {
@@ -75,7 +84,16 @@ const SocketClient = (() => {
         socket.on('ranking.update', (data) => { if (onRankingUpdateCallback) onRankingUpdateCallback(data); });
         socket.on('user.logged', (data) => { if (onUserLoggedCallback) onUserLoggedCallback(data); });
         socket.on('user.error',  (data) => { if (onUserErrorCallback)  onUserErrorCallback(data); });
-        socket.on('ranking.list', (data) => { if (onRankingListCallback) onRankingListCallback(data); });
+        socket.on('ranking.list',             (data) => { if (onRankingListCallback)             onRankingListCallback(data); });
+        socket.on('game.surrendered',          (data) => { if (onSurrenderedCallback)             onSurrenderedCallback(data); });
+        socket.on('game.opponent.disconnected',(data) => { if (onOpponentDisconnectedCallback)    onOpponentDisconnectedCallback(data); });
+        socket.on('game.opponent.reconnected', ()     => { if (onOpponentReconnectedCallback)     onOpponentReconnectedCallback(); });
+        socket.on('game.opponent.timeout',     ()     => { if (onOpponentTimeoutCallback)         onOpponentTimeoutCallback(); });
+        socket.on('game.reconnected',          (data) => { if (onReconnectedCallback)             onReconnectedCallback(data); });
+        socket.on('game.rematch.requested',    ()     => { if (onRematchRequestedCallback)         onRematchRequestedCallback(); });
+        socket.on('game.rematch.accepted',     ()     => { if (onRematchAcceptedCallback)          onRematchAcceptedCallback(); });
+        socket.on('game.rematch.cancelled',        ()  => { if (onRematchCancelledCallback)          onRematchCancelledCallback(); });
+        socket.on('game.opponent.left.gameover',   ()  => { if (onOpponentLeftGameoverCallback)      onOpponentLeftGameoverCallback(); });
     }
 
     // ---- Emit actions ----
@@ -103,6 +121,11 @@ const SocketClient = (() => {
         if (socket) socket.emit('game.grid.selected', { cellId, rowIndex, cellIndex });
     }
 
+    function surrender()    { if (socket) socket.emit('game.surrender'); }
+    function reconnectGame(){ if (socket) socket.emit('game.reconnect'); }
+    function rematchRequest(mode, botDifficulty, gameId) { if (socket) socket.emit('game.rematch.request', { mode, botDifficulty, gameId: gameId || null }); }
+    function rematchDecline()                    { if (socket) socket.emit('game.rematch.decline'); }
+    function gameoverLeave()                     { if (socket) socket.emit('game.gameover.leave'); }
     function declareDefi() { if (socket) socket.emit('game.defi.declare'); }
     function joinBot(difficulty) { if (socket) socket.emit('queue.join.bot', { difficulty }); }
     function createRoom() { if (socket) socket.emit('room.create'); }
@@ -126,7 +149,16 @@ const SocketClient = (() => {
     function onRankingUpdate(cb) { onRankingUpdateCallback = cb; }
     function onUserLogged(cb) { onUserLoggedCallback = cb; }
     function onUserError(cb)  { onUserErrorCallback = cb; }
-    function onRankingList(cb) { onRankingListCallback = cb; }
+    function onRankingList(cb)             { onRankingListCallback = cb; }
+    function onSurrendered(cb)             { onSurrenderedCallback = cb; }
+    function onOpponentDisconnected(cb)    { onOpponentDisconnectedCallback = cb; }
+    function onOpponentReconnected(cb)     { onOpponentReconnectedCallback = cb; }
+    function onOpponentTimeout(cb)         { onOpponentTimeoutCallback = cb; }
+    function onReconnected(cb)             { onReconnectedCallback = cb; }
+    function onRematchRequested(cb)        { onRematchRequestedCallback = cb; }
+    function onRematchAccepted(cb)         { onRematchAcceptedCallback = cb; }
+    function onRematchCancelled(cb)        { onRematchCancelledCallback = cb; }
+    function onOpponentLeftGameover(cb)    { onOpponentLeftGameoverCallback = cb; }
 
     function getSocket() { return socket; }
 
@@ -135,10 +167,15 @@ const SocketClient = (() => {
         rollDice, lockDice, selectChoice, selectGridCell,
         declareDefi, joinBot, createRoom, joinRoom,
         userLogin, userRegister, getRankingList,
+        surrender, reconnectGame,
         onConnect, onDisconnect, onQueueAdded, onGameStart,
         onTimer, onDeckViewState, onChoicesViewState, onGridViewState,
         onRoomCreated, onRoomJoined, onRoomError, onRankingUpdate,
         onUserLogged, onUserError, onRankingList,
+        onSurrendered, onOpponentDisconnected, onOpponentReconnected,
+        onOpponentTimeout, onReconnected,
+        onRematchRequested, onRematchAccepted, onRematchCancelled, onOpponentLeftGameover,
+        rematchRequest, rematchDecline, gameoverLeave,
         getSocket
     };
 })();

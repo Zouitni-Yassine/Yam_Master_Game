@@ -51,8 +51,11 @@ async function broadcastRanking() {
 let games = [];
 let queue = [];
 let privateRooms = {};
-let rankings = {};     // socketId -> { score, wins, losses }
-let socketToUser = {}; // socketId -> username
+let rankings = {};        // socketId -> { score, wins, losses }
+let socketToUser = {};    // socketId -> { username, avatar }
+let pendingReconnects = {}; // username -> { gameIndex, playerKey, opponentSocket, timeout, countdownInterval, mode }
+let pendingRematches  = {}; // requesterSocketId -> { requesterSocket, opponentSocket, mode, botDifficulty }
+let opponentMap       = {}; // socketId -> opponentSocket (kept after game ends for gameover interactions)
 
 function getRanking(socketId) {
     if (!rankings[socketId]) rankings[socketId] = { score: 0, wins: 0, losses: 0 };
@@ -135,6 +138,24 @@ const endGame = async (gameIndex, winnerKey, winType = 'score') => {
         game.player1Socket.emit('ranking.update', getRanking(game.player1Socket.id));
     if (!game.isBot || game.player2Socket.id !== game.botSocketId)
         game.player2Socket.emit('ranking.update', getRanking(game.player2Socket.id));
+
+    // For surrender/disconnect endings, grid has no natural winner — emit it manually
+    if (winType === 'surrender') {
+        const scores = GameService.grid.computeScores(game.gameState.grid);
+        const sendGridResult = (socket, pKey) => {
+            const oppKey = pKey === 'player:1' ? 'player:2' : 'player:1';
+            socket.emit('game.grid.view-state', {
+                displayGrid: true,
+                canSelectCells: false,
+                grid: game.gameState.grid,
+                playerScore:   scores[pKey].score,
+                opponentScore: scores[oppKey].score,
+                winner: winnerKey
+            });
+        };
+        if (!game.isBot || game.player1Socket.id !== game.botSocketId) sendGridResult(game.player1Socket, 'player:1');
+        if (!game.isBot || game.player2Socket.id !== game.botSocketId) sendGridResult(game.player2Socket, 'player:2');
+    }
 };
 
 // ---- Check winner ----
@@ -226,7 +247,7 @@ const executeBotTurn = (gameIndex) => {
 };
 
 // ---- Create game ----
-const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, botDifficulty = 'medium') => {
+const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, botDifficulty = 'medium', mode = null) => {
     const newGame = GameService.init.gameState();
     newGame.idGame = uniqid();
     newGame.player1Socket = player1Socket;
@@ -236,6 +257,8 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     newGame.botDifficulty = botDifficulty;
     newGame.botSocketId = isBot ? (botKey === 'player:1' ? player1Socket.id : player2Socket.id) : null;
     newGame.ended = false;
+    newGame.isPrivate = false;
+    newGame.mode = mode || (isBot ? 'bot' : 'online');
 
     games.push(newGame);
     const gameIndex = GameService.utils.findGameIndexById(games, newGame.idGame);
@@ -244,15 +267,23 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     const p1info = socketToUser[player1Socket.id] || (isBot && botKey === 'player:1' ? botInfo : { username: 'Joueur 1', avatar: '🎲' });
     const p2info = socketToUser[player2Socket.id] || (isBot && botKey === 'player:2' ? botInfo : { username: 'Joueur 2', avatar: '🎲' });
 
+    const gameExtra = { mode: newGame.mode, botDifficulty: newGame.botDifficulty || null, idGame: newGame.idGame };
+    // Keep socket ID mapping for post-game interactions (store IDs, not objects)
+    if (!newGame.isBot) {
+        opponentMap[player1Socket.id] = player2Socket.id;
+        opponentMap[player2Socket.id] = player1Socket.id;
+    }
     player1Socket.emit('game.start', {
         ...GameService.send.forPlayer.viewGameState('player:1', games[gameIndex]),
         playerName: p1info.username, playerAvatar: p1info.avatar,
         opponentName: p2info.username, opponentAvatar: p2info.avatar,
+        ...gameExtra
     });
     player2Socket.emit('game.start', {
         ...GameService.send.forPlayer.viewGameState('player:2', games[gameIndex]),
         playerName: p2info.username, playerAvatar: p2info.avatar,
         opponentName: p1info.username, opponentAvatar: p1info.avatar,
+        ...gameExtra
     });
 
     updateClientsViewTimers(games[gameIndex]);
@@ -279,10 +310,8 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     }, 1000);
 
     games[gameIndex].interval = interval;
-    player1Socket.on('disconnect', () => { clearInterval(interval); });
-    player2Socket.on('disconnect', () => { clearInterval(interval); });
-
     if (isBot && newGame.gameState.currentTurn === botKey) setTimeout(() => executeBotTurn(gameIndex), 1200);
+    return games[gameIndex];
 };
 
 // ---- Queue ----
@@ -334,7 +363,8 @@ io.on('connection', socket => {
         const av = user.avatar || '🎲';
         socketToUser[socket.id] = { username: name, avatar: av };
         rankings[socket.id] = { score: user.score, wins: user.wins, losses: user.losses };
-        socket.emit('user.logged', { username: name, score: user.score, wins: user.wins, losses: user.losses, avatar: av });
+        const hasPending = !!pendingReconnects[name];
+        socket.emit('user.logged', { username: name, score: user.score, wins: user.wins, losses: user.losses, avatar: av, pendingReconnect: hasPending, pendingMode: hasPending ? pendingReconnects[name].mode : null });
         await broadcastRanking();
     });
 
@@ -374,7 +404,7 @@ io.on('connection', socket => {
         const host = room.socket;
         delete privateRooms[code.toUpperCase()];
         socket.emit('room.joined', {});
-        createGame(host, socket);
+        createGame(host, socket, false, null, 'medium', 'friend');
     });
 
     socket.on('game.dices.roll', () => {
@@ -446,8 +476,179 @@ io.on('connection', socket => {
         await checkWinner(gameIndex);
     });
 
-    socket.on('disconnect', () => {
+    socket.on('game.rematch.request', ({ mode, botDifficulty, gameId }) => {
+        if (mode === 'bot') {
+            const botSocket = { id: 'bot_' + uniqid(), emit: () => {}, on: () => {} };
+            const botGoesFirst = Math.random() < 0.5;
+            const [p1, p2, botKey] = botGoesFirst
+                ? [botSocket, socket, 'player:1']
+                : [socket, botSocket, 'player:2'];
+            createGame(p1, p2, true, botKey, botDifficulty || 'medium');
+            return;
+        }
+
+        if (mode === 'online') {
+            newPlayerInQueue(socket);
+            return;
+        }
+
+        // Friend rematch: look up by gameId (works even if game.ended)
+        const gameIndex = gameId
+            ? GameService.utils.findGameIndexById(games, gameId)
+            : GameService.utils.findGameIndexBySocketId(games, socket.id);
+        if (gameIndex === -1) return;
+        const game = games[gameIndex];
+        const opponentSocket = game.player1Socket.id === socket.id ? game.player2Socket : game.player1Socket;
+
+        // Check if opponent already requested
+        const existingKey = Object.keys(pendingRematches).find(k => {
+            const r = pendingRematches[k];
+            return r.opponentSocket.id === socket.id || r.requesterSocket.id === socket.id;
+        });
+
+        if (existingKey) {
+            // Both requested — start the game
+            const { requesterSocket } = pendingRematches[existingKey];
+            delete pendingRematches[existingKey];
+            socket.emit('game.rematch.accepted');
+            requesterSocket.emit('game.rematch.accepted');
+            setTimeout(() => createGame(requesterSocket, socket, false, null, 'medium', 'friend'), 300);
+        } else {
+            // First to request — store and notify opponent
+            pendingRematches[socket.id] = { requesterSocket: socket, opponentSocket, mode, botDifficulty };
+            opponentSocket.emit('game.rematch.requested');
+            // Auto-cancel after 30s if opponent doesn't respond
+            setTimeout(() => {
+                if (pendingRematches[socket.id]) {
+                    delete pendingRematches[socket.id];
+                    socket.emit('game.rematch.cancelled');
+                }
+            }, 30000);
+        }
+    });
+
+    socket.on('game.gameover.leave', () => {
+        const opponentId = opponentMap[socket.id];
+        const opponentSocket = opponentId ? io.sockets.sockets.get(opponentId) : null;
+        console.log(`[gameover.leave] ${socket.id} -> opponent ${opponentId} -> found: ${!!opponentSocket}`);
+        if (opponentSocket) {
+            opponentSocket.emit('game.opponent.left.gameover');
+            delete opponentMap[socket.id];
+            delete opponentMap[opponentId];
+        }
+        // Cancel any pending rematch
+        const key = Object.keys(pendingRematches).find(k =>
+            pendingRematches[k].requesterSocket.id === socket.id || pendingRematches[k].opponentSocket.id === socket.id
+        );
+        if (key) delete pendingRematches[key];
+    });
+
+    socket.on('game.rematch.decline', () => {
+        // Find and cancel any pending rematch where this socket is the opponent
+        const key = Object.keys(pendingRematches).find(k => pendingRematches[k].opponentSocket.id === socket.id);
+        if (key) {
+            pendingRematches[key].requesterSocket.emit('game.rematch.cancelled');
+            delete pendingRematches[key];
+        }
+    });
+
+    socket.on('game.surrender', async () => {
+        const gameIndex = GameService.utils.findGameIndexBySocketId(games, socket.id);
+        if (gameIndex === -1) return;
+        const game = games[gameIndex];
+        if (game.ended) return;
+        const surrenderKey = game.player1Socket.id === socket.id ? 'player:1' : 'player:2';
+        const winnerKey    = surrenderKey === 'player:1' ? 'player:2' : 'player:1';
+        const winnerSocket = winnerKey === 'player:1' ? game.player1Socket : game.player2Socket;
+        const loserSocket  = surrenderKey === 'player:1' ? game.player1Socket : game.player2Socket;
+        // Notify both players
+        loserSocket.emit('game.surrendered', { by: 'you' });
+        if (!game.isBot) winnerSocket.emit('game.surrendered', { by: 'opponent' });
+        await endGame(gameIndex, winnerKey, 'surrender');
+    });
+
+    socket.on('game.reconnect', async () => {
+        const username = socketToUser[socket.id]?.username;
+        if (!username || !pendingReconnects[username]) return;
+        const rec = pendingReconnects[username];
+        clearTimeout(rec.timeout);
+        clearInterval(rec.countdownInterval);
+        delete pendingReconnects[username];
+
+        const game = games[rec.gameIndex];
+        if (!game || game.ended) { socket.emit('game.reconnect.too_late'); return; }
+
+        // Swap socket reference
+        if (rec.playerKey === 'player:1') game.player1Socket = socket;
+        else game.player2Socket = socket;
+
+        // Notify opponent reconnect happened
+        rec.opponentSocket.emit('game.opponent.reconnected');
+
+        // Re-send full game state to reconnected player
+        const botInfo = { username: 'DiceKing', avatar: '/logo/ai.png' };
+        const p1info  = socketToUser[game.player1Socket.id] || (game.isBot && game.botKey === 'player:1' ? botInfo : { username: 'Joueur 1', avatar: '🎲' });
+        const p2info  = socketToUser[game.player2Socket.id] || (game.isBot && game.botKey === 'player:2' ? botInfo : { username: 'Joueur 2', avatar: '🎲' });
+        const myInfo  = rec.playerKey === 'player:1' ? p1info : p2info;
+        const oppInfo = rec.playerKey === 'player:1' ? p2info : p1info;
+
+        socket.emit('game.reconnected', {
+            ...GameService.send.forPlayer.viewGameState(rec.playerKey, game),
+            playerName:   myInfo.username,  playerAvatar: myInfo.avatar,
+            opponentName: oppInfo.username, opponentAvatar: oppInfo.avatar,
+            mode: rec.mode
+        });
+        updateClientsViewTimers(game);
+        updateClientsViewDecks(game);
+        updateClientsViewChoices(game);
+        updateClientsViewGrid(game);
+    });
+
+    socket.on('disconnect', async () => {
         console.log(`[${socket.id}] disconnected`);
+        const gameIndex = GameService.utils.findGameIndexBySocketId(games, socket.id);
+        const username  = socketToUser[socket.id]?.username;
+
+        if (gameIndex !== -1) {
+            const game = games[gameIndex];
+            if (!game.ended) {
+                const disconnectedKey  = game.player1Socket.id === socket.id ? 'player:1' : 'player:2';
+                const opponentKey      = disconnectedKey === 'player:1' ? 'player:2' : 'player:1';
+                const opponentSocket   = opponentKey === 'player:1' ? game.player1Socket : game.player2Socket;
+
+                if (game.isBot) {
+                    // Bot game: just end immediately, bot doesn't wait
+                    const winnerKey = disconnectedKey === 'player:1' ? 'player:2' : 'player:1';
+                    await endGame(gameIndex, winnerKey, 'surrender');
+                } else if (username) {
+                    // Online/friend game: give 60s to reconnect
+                    let secondsLeft = 60;
+                    opponentSocket.emit('game.opponent.disconnected', { secondsLeft });
+
+                    const countdownInterval = setInterval(() => {
+                        secondsLeft--;
+                        opponentSocket.emit('game.opponent.disconnected', { secondsLeft });
+                        if (secondsLeft <= 0) clearInterval(countdownInterval);
+                    }, 1000);
+
+                    const mode = game.isPrivate ? 'friend' : 'online';
+                    const timeout = setTimeout(async () => {
+                        clearInterval(countdownInterval);
+                        delete pendingReconnects[username];
+                        if (!game.ended) {
+                            opponentSocket.emit('game.opponent.timeout');
+                            await endGame(gameIndex, opponentKey, 'surrender');
+                        }
+                    }, 60000);
+
+                    game.isPrivate = game.isPrivate || false;
+                    pendingReconnects[username] = { gameIndex, playerKey: disconnectedKey, opponentSocket, timeout, countdownInterval, mode };
+                } else {
+                    // Anonymous disconnect
+                    await endGame(gameIndex, opponentKey, 'surrender');
+                }
+            }
+        }
         delete socketToUser[socket.id];
     });
 });

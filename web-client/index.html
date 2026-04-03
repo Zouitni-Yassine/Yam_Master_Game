@@ -54,7 +54,11 @@
                     <span class="game-over-player-score" id="game-over-opponent-score">$0</span>
                 </div>
             </div>
-            <button class="game-over-btn" id="game-over-replay">REJOUER</button>
+            <div class="game-over-actions">
+                <button class="game-over-btn" id="game-over-replay">REJOUER</button>
+                <button class="game-over-btn game-over-menu-btn" id="game-over-menu">MENU</button>
+            </div>
+            <div id="game-over-rematch-status" class="game-over-rematch-status hidden"></div>
         </div>
     </div>
 
@@ -129,6 +133,10 @@
 
         <!-- Bottom action buttons -->
         <div id="action-bar">
+            <button id="btn-surrender" class="action-btn surrender-btn" onclick="SurrenderModal.show()">
+                <span class="btn-icon">🏳</span>
+                <span class="btn-text">ABANDONNER</span>
+            </button>
             <button id="btn-roll" class="action-btn" disabled>
                 <span class="btn-icon">🎲</span>
                 <span class="btn-text">LANCER</span>
@@ -137,6 +145,28 @@
                 <span class="btn-icon">✓</span>
                 <span class="btn-text">VALIDER</span>
             </button>
+        </div>
+
+        <!-- Surrender Confirm Modal -->
+        <div id="surrender-modal" class="game-prompt-modal hidden">
+            <div class="game-prompt-card">
+                <div class="game-prompt-title">ABANDONNER ?</div>
+                <div class="game-prompt-sub">Vous perdrez la partie et des points de classement.</div>
+                <div class="game-prompt-actions">
+                    <button class="game-prompt-btn cancel" onclick="SurrenderModal.hide()">ANNULER</button>
+                    <button class="game-prompt-btn confirm" onclick="SurrenderModal.confirm()">CONFIRMER</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opponent Disconnected Overlay -->
+        <div id="opponent-disconnect-overlay" class="game-prompt-modal hidden">
+            <div class="game-prompt-card">
+                <div class="game-prompt-title">ADVERSAIRE DÉCONNECTÉ</div>
+                <div class="game-prompt-sub">En attente de reconnexion...</div>
+                <div class="game-prompt-countdown" id="disconnect-countdown">60</div>
+                <div class="game-prompt-note">Vous gagnerez automatiquement si l'adversaire ne revient pas.</div>
+            </div>
         </div>
 
         <!-- Login Overlay -->
@@ -246,6 +276,15 @@
                     </button>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- Reconnect Banner (shown on menu when a game is pending) -->
+        <div id="reconnect-banner" class="reconnect-banner hidden">
+            <div class="reconnect-banner-inner">
+                <span class="reconnect-banner-text">PARTIE EN COURS — RECONNEXION DISPONIBLE</span>
+                <button class="reconnect-banner-btn" onclick="PendingReconnect.accept()">REJOINDRE</button>
+                <button class="reconnect-banner-dismiss" onclick="PendingReconnect.dismiss()">✕</button>
             </div>
         </div>
 
@@ -684,6 +723,43 @@
             document.getElementById('qr-modal').classList.add('hidden');
         }
         return { show, hide };
+    })();
+    </script>
+    <script>
+    // ---- Surrender Modal ----
+    const SurrenderModal = (() => {
+        function show() { document.getElementById('surrender-modal').classList.remove('hidden'); }
+        function hide() { document.getElementById('surrender-modal').classList.add('hidden'); }
+        function confirm() {
+            hide();
+            SocketClient.surrender();
+        }
+        return { show, hide, confirm };
+    })();
+
+    // ---- Pending Reconnect Banner ----
+    const PendingReconnect = (() => {
+        let _mode = null;
+        function show(mode) {
+            _mode = mode;
+            const banner = document.getElementById('reconnect-banner');
+            if (!banner) return;
+            const text = banner.querySelector('.reconnect-banner-text');
+            const labels = { bot: 'PARTIE CONTRE LE BOT', friend: 'PARTIE PRIVÉE', online: 'PARTIE EN LIGNE' };
+            const label = labels[mode] || 'PARTIE EN LIGNE';
+            if (text) text.textContent = label + ' — RECONNEXION DISPONIBLE';
+            banner.classList.remove('hidden');
+        }
+        function hide() {
+            const banner = document.getElementById('reconnect-banner');
+            if (banner) banner.classList.add('hidden');
+        }
+        function accept() {
+            hide();
+            SocketClient.reconnectGame();
+        }
+        function dismiss() { hide(); }
+        return { show, hide, accept, dismiss };
     })();
     </script>
 </body>
