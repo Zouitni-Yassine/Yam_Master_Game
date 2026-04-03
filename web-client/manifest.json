@@ -1,0 +1,18 @@
+{
+  "name": "Yam's Casino",
+  "short_name": "Yam's Casino",
+  "description": "Multiplayer dice game",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0805",
+  "theme_color": "#0a0805",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo/de.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

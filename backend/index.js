@@ -1,9 +1,34 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const os = require('os');
 const app = express();
 const http = require('http').Server(app);
-app.use(express.static(path.join(__dirname, '..', 'web-client')));
+const svgOptions = { setHeaders: (res, filePath) => { if (filePath.endsWith('.svg')) res.setHeader('Content-Type', 'image/svg+xml'); } };
+app.use(express.static(path.join(__dirname, '..', 'web-client'), svgOptions));
+
+function getLocalIP() {
+    const nets = os.networkInterfaces();
+    const VIRTUAL = /virtualbox|vmware|vethernet|vbox|hyper.v|loopback|pseudo|bluetooth|vpn|tap|tun/i;
+    const candidates = [];
+    for (const [name, addrs] of Object.entries(nets)) {
+        if (VIRTUAL.test(name)) continue;
+        for (const net of addrs) {
+            if (net.family === 'IPv4' && !net.internal) {
+                candidates.push({ name, address: net.address });
+            }
+        }
+    }
+    // Prefer WiFi or Ethernet
+    const preferred = candidates.find(c => /wi.fi|wlan|wireless|ethernet|wi-fi/i.test(c.name));
+    return (preferred || candidates[0])?.address || 'localhost';
+}
+app.get('/api/info', (req, res) => {
+    res.json({
+        publicURL: process.env.PUBLIC_URL || `http://${getLocalIP()}:3000`,
+        port: 3000
+    });
+});
 const io = require('socket.io')(http, { cors: { origin: '*', methods: ['GET', 'POST'] } });
 const uniqid = require('uniqid');
 const crypto = require('crypto');
@@ -435,7 +460,21 @@ MongoClient.connect(MONGO_URL)
         usersCol = client.db('yams_casino').collection('users');
         usersCol.createIndex({ username: 1 }, { unique: true });
         console.log('[DB] MongoDB connecté');
-        http.listen(3000, () => console.log('[Server] En écoute sur *:3000'));
+        http.listen(3000, async () => {
+            console.log('[Server] En écoute sur *:3000');
+            console.log('[Server] Web: http://localhost:3000');
+            try {
+                const localtunnel = require('localtunnel');
+                const tunnel = await localtunnel({ port: 3000, subdomain: 'yamscasino' });
+                process.env.PUBLIC_URL = tunnel.url;
+                console.log(`[Server] 📱 Mobile public: ${tunnel.url}`);
+                tunnel.on('error', () => {});
+                tunnel.on('close', () => console.log('[Tunnel] Fermé'));
+            } catch(e) {
+                console.log('[Tunnel] Indisponible, utilise IP locale');
+                process.env.PUBLIC_URL = `http://${getLocalIP()}:3000`;
+            }
+        });
     })
     .catch(err => {
         console.error('[DB] Erreur MongoDB:', err.message);

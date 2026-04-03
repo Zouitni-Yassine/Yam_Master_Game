@@ -6,7 +6,7 @@ const CasinoScene = (() => {
         scene.background = null;
 
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 7.5, 10.0);
+        camera.position.set(0, 7.5, 12.5);
         camera.lookAt(0, 1.5, -6);
 
         renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });

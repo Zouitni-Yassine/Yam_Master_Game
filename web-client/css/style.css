@@ -816,11 +816,250 @@ body {
     display: none !important;
 }
 
+/* ---- QR Button ---- */
+.qr-btn {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    z-index: 10;
+    background: rgba(212,164,76,0.1);
+    border: 1px solid rgba(212,164,76,0.5);
+    border-radius: 10px;
+    color: #d4a44c;
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 8px 14px;
+    cursor: pointer;
+    display: none; /* only shown on desktop */
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.2s, border-color 0.2s;
+}
+@media (min-width: 769px) { .qr-btn { display: inline-flex; } }
+.qr-btn:hover { background: rgba(212,164,76,0.22); border-color: #d4a44c; }
+.qr-btn-icon { width: 32px; height: 32px; filter: invert(75%) sepia(40%) saturate(500%) hue-rotate(5deg); }
+.qr-btn-label { color: #d4a44c; }
+
+/* ---- QR Modal ---- */
+.qr-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.qr-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+}
+.qr-modal-card {
+    position: relative;
+    background: linear-gradient(160deg, #1a1208, #0d0a05);
+    border: 1px solid rgba(212,164,76,0.3);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-width: 280px;
+}
+.qr-modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #d4a44c;
+}
+.qr-modal-sub {
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.75rem;
+    color: #8a7a5a;
+}
+#qr-code-container canvas {
+    border-radius: 12px;
+    padding: 10px;
+    background: #0a0805;
+    border: 1px solid rgba(212,164,76,0.2);
+}
+.qr-modal-url {
+    font-family: 'Roboto', monospace;
+    font-size: 0.7rem;
+    color: #6a5a4a;
+    word-break: break-all;
+}
+.qr-modal-close {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: #8a7a5a;
+    background: none;
+    border: 1px solid rgba(212,164,76,0.2);
+    border-radius: 20px;
+    padding: 6px 20px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+.qr-modal-close:hover { border-color: #d4a44c; color: #d4a44c; }
+
 /* ---- Responsive ---- */
 @media (max-width: 900px) {
     #top-bar { padding: 8px 0.8rem; }
     .score-badge { padding: 4px 10px 4px 6px; }
     .badge-score { font-size: 1.2rem; }
+}
+
+/* ============================================
+   MOBILE (portrait ≤ 768px)
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* Top bar */
+    #top-bar { height: 60px; padding: 6px 10px; }
+    .badge-card { padding: 5px 10px 5px 8px; gap: 7px; }
+    .badge-initial { width: 28px; height: 28px; font-size: 0.72rem; }
+    .badge-label { font-size: 0.45rem; letter-spacing: 0.12em; }
+    .badge-score { font-size: 0.85rem; }
+    .timer-ring { width: 34px; height: 34px; }
+    #round-info { padding: 5px 14px; }
+    #turn-indicator { font-size: 0.6rem; letter-spacing: 0.12em; }
+    #roll-counter { font-size: 0.55rem; }
+
+    /* Hide text labels on all corner buttons — icon only */
+    .settings-open-btn .btn-label,
+    .rules-login-btn .btn-label { display: none; }
+
+    /* Hide settings btn + QR btn in menu/login overlays on mobile */
+    #menu-overlay .settings-open-btn,
+    #login-overlay .settings-open-btn,
+    #menu-overlay .rules-login-btn,
+    .qr-btn { display: none !important; }
+
+    /* Settings btn — small circle top-right */
+    .settings-open-btn {
+        bottom: auto;
+        top: 68px;
+        right: 8px;
+        left: auto;
+        padding: 0;
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        min-width: unset;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .settings-open-btn .btn-icon-svg { margin: 0; width: 15px; height: 15px; }
+
+    /* Rules btn — small pill bottom-left */
+    .rules-login-btn {
+        padding: 6px 8px;
+        font-size: 0;
+        border-radius: 50%;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .rules-login-btn .btn-icon-svg { margin: 0; width: 15px; height: 15px; }
+
+    /* Action bar */
+    #action-bar { bottom: 12px; gap: 8px; }
+    .action-btn { padding: 12px 24px; font-size: 0.7rem; }
+
+    /* Top bar compact */
+    #top-bar { height: 56px; padding: 4px 8px; }
+
+    /* Login card */
+    .login-card { padding: 20px 16px; width: 92vw; max-height: 92dvh; overflow-y: auto; }
+    .login-brand-title { font-size: 1.4rem; }
+    .login-brand-sub { font-size: 0.5rem; }
+    .login-tab { font-size: 0.6rem; padding: 8px 14px; }
+    .login-input { font-size: 0.8rem; padding: 10px 10px 10px 36px; }
+    .field-icon-img { width: 16px; height: 16px; left: 10px; }
+    .login-btn { padding: 12px; font-size: 0.7rem; }
+    .reg-row { flex-direction: column; gap: 8px; }
+
+    /* Menu */
+    .menu-section { gap: 8px; }
+    .menu-btn { padding: 10px 16px; font-size: 0.7rem; }
+    .menu-player-chip { padding: 8px 12px; gap: 8px; border-radius: 14px; }
+    .menu-chip-name { font-size: 0.65rem; }
+    .menu-chip-score { font-size: 0.6rem; }
+    .ranking-btn { font-size: 0.55rem; padding: 5px 10px; }
+    .menu-die-canvas-wrap { width: 60px; height: 60px; }
+    .menu-title { font-size: 1.6rem; }
+    .menu-sub { font-size: 0.5rem; }
+    .mbtn-logo { width: 28px; height: 28px; }
+
+    /* Difficulty buttons */
+    .menu-btn.difficulty { padding: 8px 12px; }
+    .diff-logo { width: 28px; height: 28px; }
+    .diff-name { font-size: 0.65rem; }
+    .diff-desc { font-size: 0.5rem; }
+
+    /* Roll button */
+    #btn-roll { padding: 14px 32px; font-size: 0.8rem; border-radius: 30px; }
+
+    /* Game over */
+    .game-over-card { padding: 24px 20px; width: 88vw; }
+    .game-over-title { font-size: 1.2rem; }
+    .game-over-btn { font-size: 0.7rem; padding: 10px 24px; }
+
+    /* Leaderboard — full screen on mobile */
+    #ranking-overlay { align-items: flex-start; padding-top: 0; }
+    .ranking-panel { width: 100vw; max-width: 100vw; max-height: 100dvh; border-radius: 0; border-left: none; border-right: none; }
+    .ranking-header { padding: 14px 16px 10px; }
+    .ranking-title { font-size: 0.9rem; }
+    .ranking-list { padding: 8px; }
+    .ranking-row { padding: 10px 12px; }
+    .row-avatar { width: 28px; height: 28px; font-size: 0.75rem; }
+    .row-username { font-size: 0.75rem; }
+    .rcol-score { font-size: 0.8rem; }
+    .rcol-record { font-size: 0.6rem; }
+
+    /* Action bar - above browser bottom bar */
+    #action-bar { bottom: 20px; }
+
+    /* Avatar picker */
+    .avatar-picker-grid { gap: 6px; }
+    .avatar-opt { width: 36px; height: 36px; }
+    .avatar-opt-img { width: 22px; height: 22px; }
+    .avatar-preview { width: 60px; height: 60px; font-size: 1.8rem; }
+
+    /* Rules modal */
+    .rules-modal-card { width: 94vw; max-height: 85dvh; }
+    .rules-tab { font-size: 0.55rem; padding: 6px 10px; }
+
+    /* Défi card — smaller, bottom-right corner */
+    #defi-card { right: 10px; top: auto; bottom: 90px; transform: none; }
+    .defi-card-inner { width: 56px; height: 80px; }
+    .defi-card-img { width: 34px; height: 34px; margin-bottom: 3px; }
+    .defi-card-label { font-size: 0.6rem; }
+
+    /* Rank info — scrollable horizontally */
+    .rank-info-panel { max-width: 100vw; border-radius: 12px; }
+    .rank-info-grid {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 0;
+        padding: 16px 12px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .rank-info-item { min-width: 72px; padding: 12px 6px; }
+    .rank-info-img { width: 46px; height: 46px; }
+    .rank-info-name { font-size: 0.6rem; }
+    .rank-info-pts { font-size: 0.6rem; }
+    .rank-info-sub { font-size: 0.6rem; padding: 10px 12px; }
 }
 
 /* ---- Animations ---- */
@@ -1620,11 +1859,11 @@ body {
     box-shadow: 0 0 16px rgba(201,150,42,0.2);
 }
 
-/* ---- Settings button (bottom-left) ---- */
+/* ---- Settings button (bottom-right) ---- */
 .settings-open-btn {
     position: absolute;
     bottom: 28px;
-    left: 32px;
+    right: 32px;
     background: rgba(10, 7, 2, 0.75);
     border: 1px solid #3a2c0e;
     color: #c9962a;

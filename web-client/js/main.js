@@ -76,8 +76,10 @@ const SoundManager = (() => {
     // Step 4b: Init dice cups
     DiceCup.init(scene);
 
-    // Step 4c: Init characters
-    Characters.init(scene);
+    // Step 4c: Init characters (skip on low-end mobile)
+    const _isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    const _isLowEnd = navigator.hardwareConcurrency <= 4;
+    if (!_isMobile || !_isLowEnd) Characters.init(scene);
 
     // Step 5: Init UI
     setProgress(80, 'Configuration de l\'interface...');

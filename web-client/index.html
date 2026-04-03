@@ -2,8 +2,14 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Yam's Casino">
+    <meta name="theme-color" content="#0a0805">
     <title>Yam's Casino</title>
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cinzel:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
@@ -54,7 +60,7 @@
 
     <!-- UI Overlay -->
     <div id="ui-overlay">
-        <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"> PARAMÈTRES</button>
+        <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"><span class="btn-label"> PARAMÈTRES</span></button>
         <!-- Top bar -->
         <div id="top-bar">
             <!-- Player score badge (left) -->
@@ -138,8 +144,8 @@
         <div id="login-overlay">
             <canvas id="login-canvas"></canvas>
 
-            <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"> PARAMÈTRES</button>
-            <button id="btn-rules-login" class="rules-login-btn"><img src="/icons/icon-game-rules.svg" class="btn-icon-svg"> RÈGLES DU JEU</button>
+            <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"><span class="btn-label"> PARAMÈTRES</span></button>
+            <button id="btn-rules-login" class="rules-login-btn"><img src="/icons/icon-game-rules.svg" class="btn-icon-svg"><span class="btn-label"> RÈGLES DU JEU</span></button>
 
             <div class="login-card">
                 <div class="login-brand">
@@ -246,7 +252,12 @@
         <!-- Main Menu Overlay -->
         <div id="queue-overlay" class="hidden">
             <canvas id="menu-bg-canvas"></canvas>
-            <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"> PARAMÈTRES</button>
+            <!-- QR Button top-right -->
+            <button id="btn-qr" class="qr-btn" title="Jouer sur mobile" onclick="QRModal.show()">
+                <img src="/login icons/icon-qrcode.svg" class="qr-btn-icon" alt="QR Code">
+                <span class="qr-btn-label">VERSION MOBILE</span>
+            </button>
+            <button class="settings-open-btn"><img src="/icons/icon-settings.svg" class="btn-icon-svg"><span class="btn-label"> PARAMÈTRES</span></button>
             <div class="menu-layout">
 
                 <!-- Player chip top -->
@@ -326,7 +337,7 @@
                 </div>
 
             </div>
-            <button id="btn-rules" class="rules-login-btn"><img src="/icons/icon-game-rules.svg" class="btn-icon-svg"> RÈGLES DU JEU</button>
+            <button id="btn-rules" class="rules-login-btn"><img src="/icons/icon-game-rules.svg" class="btn-icon-svg"><span class="btn-label"> RÈGLES DU JEU</span></button>
         </div>
 
         <!-- Ranking overlay -->
@@ -638,5 +649,42 @@
     <!-- Dev mode -->
     <script src="js/dev-mode.js"></script>
     <script>Settings.init();</script>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="qr-modal hidden">
+        <div class="qr-modal-backdrop" onclick="QRModal.hide()"></div>
+        <div class="qr-modal-card">
+            <div class="qr-modal-title">JOUER SUR MOBILE</div>
+            <div class="qr-modal-sub">Scannez pour rejoindre depuis votre téléphone</div>
+            <div id="qr-code-container"></div>
+            <div class="qr-modal-url" id="qr-url-text"></div>
+            <button class="qr-modal-close" onclick="QRModal.hide()">FERMER</button>
+        </div>
+    </div>
+    <script>
+    const QRModal = (() => {
+        async function show() {
+            document.getElementById('qr-modal').classList.remove('hidden');
+            const container = document.getElementById('qr-code-container');
+            container.innerHTML = '<div style="color:#d4a44c;font-size:0.7rem;font-family:Cinzel,serif;padding:20px;">Chargement...</div>';
+            let url = window.location.origin;
+            try {
+                const res = await fetch('/api/info');
+                const data = await res.json();
+                if (data.publicURL) url = data.publicURL;
+            } catch(e) {}
+            document.getElementById('qr-url-text').textContent = url;
+            const img = document.createElement('img');
+            img.style.cssText = 'width:200px;height:200px;border-radius:12px;border:1px solid rgba(212,164,76,0.3);display:block;';
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&bgcolor=0a0805&color=d4a44c&data=${encodeURIComponent(url)}`;
+            container.innerHTML = '';
+            container.appendChild(img);
+        }
+        function hide() {
+            document.getElementById('qr-modal').classList.add('hidden');
+        }
+        return { show, hide };
+    })();
+    </script>
 </body>
 </html>

@@ -262,9 +262,11 @@ const Settings = (() => {
         const valBtn = document.querySelector('#btn-validate .btn-text');
         if (valBtn) valBtn.textContent = T[lang]['btn-validate-text'];
 
-        // Shared corner buttons — update only the text node, keep SVG icon
+        // Shared corner buttons — update .btn-label span or text node, keep SVG icon
         const setIconBtn = (sel, key) => {
             document.querySelectorAll(sel).forEach(btn => {
+                const span = btn.querySelector('.btn-label');
+                if (span) { span.textContent = ' ' + T[lang][key]; return; }
                 const lastNode = [...btn.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
                 if (lastNode) lastNode.textContent = ' ' + T[lang][key];
             });

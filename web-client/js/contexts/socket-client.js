@@ -5,7 +5,9 @@
 
 const SocketClient = (() => {
     let socket = null;
-    const SERVER_URL = 'http://localhost:3000';
+    const SERVER_URL = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000'
+        : window.location.origin;
 
     // Callbacks
     let onConnectCallback = null;
