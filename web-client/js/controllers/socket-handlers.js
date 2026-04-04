@@ -334,8 +334,11 @@ const GameSocketHandlers = {
                     row.forEach((cell, ci) => {
                         const prev = state.currentGrid.grid[ri]?.[ci];
                         if (cell.owner && (!prev || !prev.owner)) {
-                            // Use cell.owner directly: player:1=red, player:2=black on BOTH clients
+                            // New chip placed
                             ChipSystem.flyChipToCell(ri, ci, cell.owner);
+                        } else if (!cell.owner && prev && prev.owner) {
+                            // Chip removed (magic card effect)
+                            ChipSystem.removeChipFromCell(ri, ci);
                         }
                     });
                 });

@@ -9,6 +9,7 @@ const ChipSystem = (() => {
     let scene;
     let p1Chips = [], p2Chips = [];
     let placedChips = [];
+    let swapped = false;
 
     function init(sceneRef) {
         scene = sceneRef;
@@ -32,6 +33,7 @@ const ChipSystem = (() => {
     // Called once at game start — if player 2, swap stack positions so own chips are in front
     function setPlayerSide(isPlayer1) {
         if (isPlayer1) return; // player 1 already has correct layout
+        swapped = true;
         // Move p1 chips to P2_POS (far) and p2 chips to P1_POS (near)
         p1Chips.forEach(chip => { chip.position.x = P2_POS.x; chip.position.z = P2_POS.z; });
         p2Chips.forEach(chip => { chip.position.x = P1_POS.x; chip.position.z = P1_POS.z; });
@@ -52,5 +54,27 @@ const ChipSystem = (() => {
         gsap.to(chip.rotation, { y: `+=${Math.PI * 6}`, duration: 0.82, ease: 'power2.out' });
     }
 
-    return { init, flyChipToCell, setPlayerSide };
+    function removeChipFromCell(row, col) {
+        const idx = placedChips.findIndex(c => c.row === row && c.col === col);
+        if (idx === -1) return;
+        const { chip, ownerId } = placedChips.splice(idx, 1)[0];
+        const stackArr = ownerId === 'player:1' ? p1Chips : p2Chips;
+
+        // Animate chip flying up and fading out, then return to stack
+        gsap.to(chip.position, { y: 4, duration: 0.3, ease: 'power2.out' });
+        gsap.to(chip.scale, { x: 0, y: 0, z: 0, duration: 0.3, delay: 0.2, ease: 'power2.in', onComplete: () => {
+            // Reset scale and return chip to its stack
+            chip.scale.set(1, 1, 1);
+            const isP1 = ownerId === 'player:1';
+            const stackPos = swapped ? (isP1 ? P2_POS : P1_POS) : (isP1 ? P1_POS : P2_POS);
+            chip.position.set(
+                stackPos.x + (Math.random() - 0.5) * 0.04,
+                ChipModel.H / 2 + stackArr.length * ChipModel.H,
+                stackPos.z + (Math.random() - 0.5) * 0.04
+            );
+            stackArr.push(chip);
+        }});
+    }
+
+    return { init, flyChipToCell, removeChipFromCell, setPlayerSide };
 })();
