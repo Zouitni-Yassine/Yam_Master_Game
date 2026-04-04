@@ -151,10 +151,6 @@ Le dossier `backend/` a été développé en collaboration avec le prof dans le 
 
 **Connexion** : MongoDB Atlas, accessible depuis toutes les IPs (`0.0.0.0/0` dans les règles réseau Atlas).
 
-```
-MONGO_URL=mongodb+srv://yam:9kzWydusMPnHXt8p@yam.hhnrzvi.mongodb.net/yams_casino?appName=Yam
-```
-
 **Collections** :
 
 - `users` : username, password (SHA256), email, avatar, firstname, lastname, dob, score, wins, losses
