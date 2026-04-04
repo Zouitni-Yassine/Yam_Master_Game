@@ -215,6 +215,28 @@ const executeBotTurn = (gameIndex) => {
     const afterRollDelay = difficulty === 'hard' ? 4000 : difficulty === 'medium' ? 4500 : 5000;
     const maxRolls = game.gameState.deck.rollsMaximum;
 
+    // Hard bot: use magic card strategically before rolling
+    if (difficulty === 'hard' && game.gameState.deck.rollsCounter === 1 && BotService.decideMagicCard(game, botKey, humanKey)) {
+        setTimeout(async () => {
+            if (game.ended) return;
+            const result = MagicService.apply(game, botKey);
+            if (!result) return;
+            game.player1Socket.emit('game.magic.result', result);
+            game.player2Socket.emit('game.magic.result', result);
+            game.gameState.currentTurn = humanKey;
+            game.gameState.timer   = GameService.timer.getTurnDuration();
+            game.gameState.deck    = GameService.init.deck();
+            game.gameState.choices = GameService.init.choices();
+            game.gameState.grid    = GameService.grid.resetcanBeCheckedCells(game.gameState.grid);
+            updateClientsViewTimers(game);
+            updateClientsViewGrid(game);
+            updateClientsViewDecks(game);
+            updateClientsViewChoices(game);
+            await checkWinner(gameIndex);
+        }, thinkDelay);
+        return;
+    }
+
     const doRoll = () => {
         if (game.ended) return;
         const deck = game.gameState.deck;
@@ -223,14 +245,30 @@ const executeBotTurn = (gameIndex) => {
         game.gameState.deck.rollsCounter++;
         const dices = game.gameState.deck.dices;
         const isSec = game.gameState.deck.rollsCounter === 2;
-        game.gameState.choices.availableChoices = GameService.choices.findCombinations(dices, false, isSec);
+
+        // Compute combos (pass current isDefi state)
+        game.gameState.choices.availableChoices = GameService.choices.findCombinations(dices, game.gameState.choices.isDefi, isSec);
+
+        // Hard bot: consider declaring defi after first roll (before 2nd roll)
+        if (difficulty === 'hard' && game.gameState.deck.rollsCounter === 2 && !game.gameState.choices.isDefi) {
+            if (BotService.shouldDeclareDefi(dices, game.gameState.grid, botKey, humanKey)) {
+                game.gameState.choices.isDefi = true;
+            }
+        }
+
         const isLast = game.gameState.deck.rollsCounter > maxRolls;
-        const toKeep = BotService.decideLock(dices, difficulty);
+        const toKeep = BotService.decideLock(dices, difficulty, game.gameState.grid, botKey, humanKey);
         game.gameState.deck.dices = dices.map(d => ({ ...d, locked: toKeep.includes(d.id) }));
         updateClientsViewDecks(game);
         updateClientsViewChoices(game);
         takeSnapshot(game, 'roll');
-        setTimeout(isLast ? doChoose : doRoll, afterRollDelay);
+
+        // Hard bot: stop rolling early if current result is already excellent
+        if (difficulty === 'hard' && !isLast && BotService.shouldStopRolling(dices, game.gameState.choices.availableChoices, game.gameState.grid, botKey, humanKey)) {
+            setTimeout(doChoose, thinkDelay);
+        } else {
+            setTimeout(isLast ? doChoose : doRoll, afterRollDelay);
+        }
     };
 
     const doEndTurn = () => {
