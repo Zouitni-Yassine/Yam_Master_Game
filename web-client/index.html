@@ -330,6 +330,10 @@
                         <img src="/icons/icon-dice-king.svg" class="mbtn-logo">
                         <span class="mbtn-text">JOUER CONTRE LE DICE KING</span>
                     </button>
+                    <button id="btn-replays" class="menu-btn replays-btn" onclick="ReplayViewer.openList()">
+                        <img src="/login icons/icon-mes-parties.svg" class="mbtn-logo">
+                        <span class="mbtn-text">MES PARTIES</span>
+                    </button>
                 </div>
 
                 <!-- Friend sub-menu -->
@@ -689,6 +693,46 @@
     <script src="js/dev-mode.js"></script>
     <script>Settings.init();</script>
 
+    <!-- Replay Overlay -->
+    <div id="replay-overlay" class="replay-overlay hidden">
+        <div class="replay-backdrop" onclick="ReplayViewer.close()"></div>
+        <div class="replay-card" id="replay-card">
+            <!-- List view -->
+            <div id="replay-list-view">
+                <div class="replay-header">
+                    <span class="replay-title">MES PARTIES</span>
+                    <button class="replay-close-btn" onclick="ReplayViewer.close()">✕</button>
+                </div>
+                <div id="replay-list-content" class="replay-list-content">
+                    <div class="replay-loading">Chargement...</div>
+                </div>
+            </div>
+            <!-- Detail/playback view -->
+            <div id="replay-detail-view" class="hidden">
+                <div class="replay-header">
+                    <button class="replay-back-btn" onclick="ReplayViewer.backToList()">← RETOUR</button>
+                    <span class="replay-title" id="replay-detail-title">REPLAY</span>
+                    <button class="replay-close-btn" onclick="ReplayViewer.close()">✕</button>
+                </div>
+                <div class="replay-players" id="replay-detail-players"></div>
+                <div class="replay-turn-bar" id="replay-turn-bar"></div>
+                <div class="replay-dices-row" id="replay-dices-row"></div>
+                <div class="replay-choices-row" id="replay-choices-row"></div>
+                <div class="replay-grid-wrap">
+                    <div id="replay-grid" class="replay-grid"></div>
+                </div>
+                <div class="replay-move-info" id="replay-move-info">Étape 0 / 0</div>
+                <div class="replay-controls">
+                    <button class="replay-ctrl-btn" onclick="ReplayViewer.first()">⏮</button>
+                    <button class="replay-ctrl-btn" onclick="ReplayViewer.prev()">◀</button>
+                    <button class="replay-ctrl-btn" id="replay-play-btn" onclick="ReplayViewer.togglePlay()">▶</button>
+                    <button class="replay-ctrl-btn" onclick="ReplayViewer.next()">▶|</button>
+                    <button class="replay-ctrl-btn" onclick="ReplayViewer.last()">⏭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- QR Code Modal -->
     <div id="qr-modal" class="qr-modal hidden">
         <div class="qr-modal-backdrop" onclick="QRModal.hide()"></div>
@@ -725,6 +769,165 @@
         return { show, hide };
     })();
     </script>
+    <script>
+    // ---- Replay Viewer ----
+    const ReplayViewer = (() => {
+        let _replay = null;
+        let _stepIndex = 0;
+        let _playInterval = null;
+
+        const DICE_FACES = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        const _t = k => (typeof Settings !== 'undefined' ? Settings.t(k) : k);
+
+        function openList() {
+            document.getElementById('replay-overlay').classList.remove('hidden');
+            document.getElementById('replay-list-view').classList.remove('hidden');
+            document.getElementById('replay-detail-view').classList.add('hidden');
+            document.getElementById('replay-list-content').innerHTML = `<div class="replay-loading">${_t('replay-loading')}</div>`;
+            SocketClient.getReplayList();
+        }
+
+        function close() {
+            document.getElementById('replay-overlay').classList.add('hidden');
+            stopPlay();
+        }
+
+        function backToList() {
+            stopPlay();
+            document.getElementById('replay-detail-view').classList.add('hidden');
+            document.getElementById('replay-list-view').classList.remove('hidden');
+        }
+
+        function renderList(replays) {
+            const el = document.getElementById('replay-list-content');
+            if (!replays || !replays.length) { el.innerHTML = `<div class="replay-empty">${_t('replay-empty')}</div>`; return; }
+            el.innerHTML = replays.map(r => {
+                const p1 = r.players['player:1'];
+                const p2 = r.players['player:2'];
+                const lang = typeof Settings !== 'undefined' ? Settings.state.lang : 'fr';
+                const date = new Date(r.playedAt).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+                const modeLabel = { bot: _t('replay-mode-bot'), friend: _t('replay-mode-friend'), online: _t('replay-mode-online') }[r.mode] || r.mode;
+                const winnerName = r.players[r.winner]?.username || '?';
+                return `<div class="replay-row" onclick="ReplayViewer.loadReplay('${r.idGame}')">
+                    <div class="replay-row-players">${p1.username} <span class="replay-vs">vs</span> ${p2.username}</div>
+                    <div class="replay-row-meta">
+                        <span class="replay-row-mode">${modeLabel}</span>
+                        <span class="replay-row-winner">🏆 ${winnerName}</span>
+                        <span class="replay-row-date">${date}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function loadReplay(idGame) { SocketClient.getReplay(idGame); }
+
+        function showReplay(replay) {
+            _replay = replay;
+            _stepIndex = 0;
+            document.getElementById('replay-list-view').classList.add('hidden');
+            document.getElementById('replay-detail-view').classList.remove('hidden');
+            const p1 = replay.players['player:1'];
+            const p2 = replay.players['player:2'];
+            document.getElementById('replay-detail-title').textContent = `${p1.username} vs ${p2.username}`;
+            const p1color = '<span class="replay-dot-p1">●</span>';
+            const p2color = '<span class="replay-dot-p2">●</span>';
+            document.getElementById('replay-detail-players').innerHTML =
+                `<div class="replay-p1">${p1color}<span>${p1.username}</span><span class="replay-pscore">$${(p1.score||0)*100}</span></div>
+                 <div class="replay-divider">vs</div>
+                 <div class="replay-p2">${p2color}<span>${p2.username}</span><span class="replay-pscore">$${(p2.score||0)*100}</span></div>`;
+            renderStep();
+        }
+
+        function renderStep() {
+            if (!_replay) return;
+            const moves = _replay.moves || [];
+            const total = moves.length;
+            if (total === 0) {
+                document.getElementById('replay-turn-bar').textContent = _t('replay-no-data');
+                document.getElementById('replay-dices-row').innerHTML = '';
+                document.getElementById('replay-choices-row').innerHTML = '';
+                document.getElementById('replay-grid').innerHTML = '';
+                document.getElementById('replay-move-info').textContent = `${_t('replay-step')} 0 / 0`;
+                return;
+            }
+            const idx = Math.max(0, Math.min(_stepIndex, total - 1));
+            const move = moves[idx];
+            const p1 = _replay.players['player:1'];
+            const p2 = _replay.players['player:2'];
+            const turnPlayer = move.currentTurn === 'player:1' ? p1.username : p2.username;
+            const turnClass  = move.currentTurn === 'player:1' ? 'turn-p1' : 'turn-p2';
+            const typeLabels = { roll: _t('replay-roll'), choice: _t('replay-choice'), place: _t('replay-place') };
+            const typeLabel  = typeLabels[move.type] || move.type;
+
+            // Turn bar
+            document.getElementById('replay-turn-bar').innerHTML =
+                `<span class="replay-turn-label ${turnClass}">${turnPlayer}</span><span class="replay-turn-type">${typeLabel}</span>`;
+
+            // Dices
+            const dices = move.dices || [];
+            document.getElementById('replay-dices-row').innerHTML = dices.map(d => {
+                const face = DICE_FACES[d.value] || '?';
+                const lockedCls = d.locked ? 'replay-dice locked' : 'replay-dice';
+                return `<div class="${lockedCls}" title="${d.locked ? _t('replay-locked') : ''}">${face}<span class="replay-dice-lock">${d.locked ? '🔒' : ''}</span></div>`;
+            }).join('');
+
+            // Choices
+            const available = move.availableChoices || [];
+            const selected  = move.selectedChoice;
+            document.getElementById('replay-choices-row').innerHTML = available.length
+                ? available.map(c => {
+                    const isSel = c === selected;
+                    return `<span class="replay-choice-chip${isSel ? ' selected' : ''}">${c}</span>`;
+                }).join('')
+                : (selected ? `<span class="replay-choice-chip selected">${selected}</span>` : '<span class="replay-no-choice">—</span>');
+
+            // Grid from snapshot
+            const grid = move.grid || [];
+            document.getElementById('replay-grid').innerHTML = grid.map(row =>
+                `<div class="replay-grid-row">${row.map(cell => {
+                    const cls = cell.owner === 'player:1' ? 'owner-p1' : cell.owner === 'player:2' ? 'owner-p2' : '';
+                    const label = cell.id || '';
+                    return `<div class="replay-cell ${cls}" title="${label}">${label}</div>`;
+                }).join('')}</div>`
+            ).join('');
+
+            // Step info
+            const rollsInfo = (move.type === 'roll' || move.type === 'choice')
+                ? ` — ${_t('replay-roll-of')} ${move.rollsCounter || '?'}/${move.rollsMax || '?'}`
+                : '';
+            document.getElementById('replay-move-info').textContent = `${_t('replay-step')} ${idx + 1} / ${total}${rollsInfo}`;
+        }
+
+        function first()  { stopPlay(); _stepIndex = 0; renderStep(); }
+        function last()   { stopPlay(); _stepIndex = (_replay?.moves?.length || 1) - 1; renderStep(); }
+        function prev()   { stopPlay(); if (_stepIndex > 0) { _stepIndex--; renderStep(); } }
+        function next()   {
+            const max = (_replay?.moves?.length || 1) - 1;
+            if (_stepIndex < max) { _stepIndex++; renderStep(); }
+            else stopPlay();
+        }
+        function stopPlay() {
+            clearInterval(_playInterval); _playInterval = null;
+            const btn = document.getElementById('replay-play-btn');
+            if (btn) btn.textContent = '▶';
+        }
+        function togglePlay() {
+            if (_playInterval) { stopPlay(); return; }
+            document.getElementById('replay-play-btn').textContent = '⏸';
+            _playInterval = setInterval(() => {
+                const max = (_replay?.moves?.length || 1) - 1;
+                if (_stepIndex >= max) { stopPlay(); return; }
+                _stepIndex++; renderStep();
+            }, 1200);
+        }
+
+        SocketClient.onReplayList(renderList);
+        SocketClient.onReplayData(showReplay);
+
+        return { openList, close, backToList, loadReplay, first, prev, next, last, togglePlay };
+    })();
+    </script>
+
     <script>
     // ---- Surrender Modal ----
     const SurrenderModal = (() => {

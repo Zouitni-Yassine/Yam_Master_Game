@@ -34,6 +34,8 @@ const SocketClient = (() => {
     let onRematchAcceptedCallback  = null;
     let onRematchCancelledCallback = null;
     let onOpponentLeftGameoverCallback = null;
+    let onReplayListCallback = null;
+    let onReplayDataCallback = null;
 
     function connect() {
         socket = io(SERVER_URL, {
@@ -94,6 +96,8 @@ const SocketClient = (() => {
         socket.on('game.rematch.accepted',     ()     => { if (onRematchAcceptedCallback)          onRematchAcceptedCallback(); });
         socket.on('game.rematch.cancelled',        ()  => { if (onRematchCancelledCallback)          onRematchCancelledCallback(); });
         socket.on('game.opponent.left.gameover',   ()  => { if (onOpponentLeftGameoverCallback)      onOpponentLeftGameoverCallback(); });
+        socket.on('user.replays.list',             (d) => { if (onReplayListCallback)                onReplayListCallback(d); });
+        socket.on('replay.data',                   (d) => { if (onReplayDataCallback)                onReplayDataCallback(d); });
     }
 
     // ---- Emit actions ----
@@ -159,6 +163,10 @@ const SocketClient = (() => {
     function onRematchAccepted(cb)         { onRematchAcceptedCallback = cb; }
     function onRematchCancelled(cb)        { onRematchCancelledCallback = cb; }
     function onOpponentLeftGameover(cb)    { onOpponentLeftGameoverCallback = cb; }
+    function onReplayList(cb)              { onReplayListCallback = cb; }
+    function onReplayData(cb)              { onReplayDataCallback = cb; }
+    function getReplayList()               { if (socket) socket.emit('user.replays.get'); }
+    function getReplay(idGame)             { if (socket) socket.emit('replay.get', { idGame }); }
 
     function getSocket() { return socket; }
 
@@ -176,6 +184,7 @@ const SocketClient = (() => {
         onOpponentTimeout, onReconnected,
         onRematchRequested, onRematchAccepted, onRematchCancelled, onOpponentLeftGameover,
         rematchRequest, rematchDecline, gameoverLeave,
+        onReplayList, onReplayData, getReplayList, getReplay,
         getSocket
     };
 })();

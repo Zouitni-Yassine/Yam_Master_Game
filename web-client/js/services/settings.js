@@ -119,6 +119,21 @@ const Settings = (() => {
             'rules-tab-combos': '🃏 Combos',
             'rules-tab-gains':  '💰 Gains',
             'rules-tab-rank':   '🏆 Classement',
+            'btn-replays':      'MES PARTIES',
+            'replay-back':      '← RETOUR',
+            'replay-title-list':'MES PARTIES',
+            'replay-loading':   'Chargement...',
+            'replay-empty':     'Aucune partie enregistrée.',
+            'replay-mode-bot':  'vs Bot',
+            'replay-mode-friend':'Privée',
+            'replay-mode-online':'En ligne',
+            'replay-roll':      'Lancé de dés',
+            'replay-choice':    'Choix de combinaison',
+            'replay-place':     'Placement',
+            'replay-locked':    'Verrouillé',
+            'replay-no-data':   'Aucune donnée',
+            'replay-step':      'Étape',
+            'replay-roll-of':   'Lancé',
         },
         en: {
             'brand-sub':        'PRIVATE TABLE · MEMBERS ONLY',
@@ -192,6 +207,21 @@ const Settings = (() => {
             'rules-tab-combos': '🃏 Combos',
             'rules-tab-gains':  '💰 Rewards',
             'rules-tab-rank':   '🏆 Ranking',
+            'btn-replays':      'MY GAMES',
+            'replay-back':      '← BACK',
+            'replay-title-list':'MY GAMES',
+            'replay-loading':   'Loading...',
+            'replay-empty':     'No games recorded.',
+            'replay-mode-bot':  'vs Bot',
+            'replay-mode-friend':'Private',
+            'replay-mode-online':'Online',
+            'replay-roll':      'Dice roll',
+            'replay-choice':    'Choose combo',
+            'replay-place':     'Placement',
+            'replay-locked':    'Locked',
+            'replay-no-data':   'No data',
+            'replay-step':      'Step',
+            'replay-roll-of':   'Roll',
         },
     };
 
@@ -288,6 +318,13 @@ const Settings = (() => {
         // Game over replay button
         const replayBtn = document.getElementById('game-over-replay');
         if (replayBtn) replayBtn.textContent = T[lang]['gameover-replay'];
+
+        // Replay viewer static elements
+        set('#btn-replays .mbtn-text', 'btn-replays');
+        const replayBackBtn = document.querySelector('#replay-detail-view .replay-back-btn');
+        if (replayBackBtn) replayBackBtn.textContent = T[lang]['replay-back'];
+        const replayListTitle = document.querySelector('#replay-list-view .replay-title');
+        if (replayListTitle) replayListTitle.textContent = T[lang]['replay-title-list'];
 
         // Rules tab labels
         const tabMap = { gameplay: 'rules-tab-jeu', combos: 'rules-tab-combos', gains: 'rules-tab-gains', ranking: 'rules-tab-rank' };

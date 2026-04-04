@@ -974,6 +974,148 @@ body {
     padding: 2px 6px;
 }
 
+/* ---- Replay Viewer ---- */
+.replay-overlay {
+    position: fixed; inset: 0; z-index: 4000;
+    display: flex; align-items: center; justify-content: center;
+}
+.replay-overlay.hidden { display: none; }
+.replay-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+}
+.replay-card {
+    position: relative; z-index: 1;
+    background: #0d0a04;
+    border: 1px solid rgba(212,164,76,0.45);
+    border-radius: 18px;
+    width: min(700px, 95vw);
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+}
+.replay-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid rgba(212,164,76,0.2);
+    flex-shrink: 0;
+}
+.replay-title {
+    font-family: 'Cinzel', serif; font-size: 0.9rem;
+    letter-spacing: 0.15em; color: #d4a44c;
+}
+.replay-close-btn, .replay-back-btn {
+    background: none; border: none; color: #a08050;
+    font-size: 0.85rem; cursor: pointer; font-family: 'Cinzel', serif;
+    letter-spacing: 0.05em; padding: 4px 8px;
+}
+.replay-close-btn:hover, .replay-back-btn:hover { color: #d4a44c; }
+
+/* List */
+.replay-list-content { overflow-y: auto; max-height: calc(85vh - 80px); padding: 12px; }
+.replay-loading, .replay-empty { text-align: center; color: #6a5030; font-size: 0.8rem; padding: 40px; font-family: 'Cinzel', serif; }
+.replay-row {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(212,164,76,0.15);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 8px;
+    cursor: pointer; transition: background 0.2s, border-color 0.2s;
+}
+.replay-row:hover { background: rgba(212,164,76,0.08); border-color: rgba(212,164,76,0.4); }
+.replay-row-players { font-family: 'Cinzel', serif; font-size: 0.85rem; color: #e8d48a; margin-bottom: 6px; }
+.replay-vs { color: #6a5030; margin: 0 8px; }
+.replay-row-meta { display: flex; gap: 16px; font-size: 0.72rem; color: #a08050; }
+.replay-row-winner { color: #d4a44c; }
+.replay-row-date { margin-left: auto; }
+
+/* Detail */
+.replay-players {
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    padding: 14px 22px 8px; flex-shrink: 0;
+}
+.replay-p1, .replay-p2 { display: flex; flex-direction: column; align-items: center; gap: 3px; font-family: 'Cinzel', serif; font-size: 0.78rem; color: #e8d48a; }
+.replay-divider { color: #6a5030; font-size: 0.8rem; }
+.replay-pscore { color: #d4a44c; font-size: 0.85rem; }
+
+/* Grid */
+.replay-grid-wrap { overflow: auto; padding: 12px 22px; flex: 1; }
+.replay-grid { display: flex; flex-direction: column; gap: 3px; }
+.replay-grid-row { display: flex; gap: 3px; }
+.replay-cell {
+    flex: 1; min-width: 50px; height: 36px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; color: #6a5030; font-family: 'Cinzel', serif;
+    transition: background 0.2s;
+}
+.replay-cell.owner-p1 { background: rgba(212,80,80,0.25); border-color: rgba(212,80,80,0.5); color: #e88; }
+.replay-cell.owner-p2 { background: rgba(80,80,212,0.25); border-color: rgba(80,80,212,0.5); color: #88e; }
+
+/* Turn bar */
+.replay-turn-bar {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 6px 22px; flex-shrink: 0;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(212,164,76,0.1);
+    font-family: 'Cinzel', serif; font-size: 0.75rem;
+}
+.replay-turn-label { font-weight: 700; letter-spacing: 0.05em; }
+.replay-turn-label.turn-p1 { color: #e87070; }
+.replay-turn-label.turn-p2 { color: #7070e8; }
+.replay-turn-type { color: #a08050; font-size: 0.68rem; }
+.replay-dot-p1 { color: #e87070; margin-right: 4px; }
+.replay-dot-p2 { color: #7070e8; margin-right: 4px; }
+
+/* Dices */
+.replay-dices-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 22px 6px; flex-shrink: 0;
+}
+.replay-dice {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 1.6rem; line-height: 1; color: #e8d48a; position: relative;
+    transition: background 0.2s, border-color 0.2s;
+}
+.replay-dice.locked {
+    background: rgba(212,164,76,0.18); border-color: rgba(212,164,76,0.55);
+    color: #d4a44c;
+}
+.replay-dice-lock {
+    position: absolute; bottom: -2px; right: 1px;
+    font-size: 0.45rem; line-height: 1;
+}
+
+/* Choices */
+.replay-choices-row {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px;
+    padding: 6px 22px 10px; flex-shrink: 0; min-height: 34px;
+}
+.replay-choice-chip {
+    padding: 3px 8px; border-radius: 5px; font-size: 0.62rem;
+    font-family: 'Cinzel', serif; letter-spacing: 0.04em;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #6a5030;
+}
+.replay-choice-chip.selected {
+    background: rgba(212,164,76,0.2); border-color: rgba(212,164,76,0.6);
+    color: #e8d48a; font-weight: 700;
+}
+.replay-no-choice { color: #3a2010; font-size: 0.7rem; font-family: 'Cinzel', serif; }
+
+/* Controls */
+.replay-move-info { text-align: center; font-size: 0.72rem; color: #a08050; font-family: 'Cinzel', serif; padding: 4px; flex-shrink: 0; }
+.replay-controls {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 12px 22px 18px; flex-shrink: 0;
+    border-top: 1px solid rgba(212,164,76,0.12);
+}
+.replay-ctrl-btn {
+    background: rgba(212,164,76,0.1); border: 1px solid rgba(212,164,76,0.3);
+    border-radius: 8px; color: #d4a44c; font-size: 1rem;
+    width: 42px; height: 38px; cursor: pointer; transition: background 0.2s;
+}
+.replay-ctrl-btn:hover { background: rgba(212,164,76,0.22); }
+
 /* ---- QR Modal ---- */
 .qr-modal {
     position: fixed;

@@ -55,7 +55,8 @@ let rankings = {};        // socketId -> { score, wins, losses }
 let socketToUser = {};    // socketId -> { username, avatar }
 let pendingReconnects = {}; // username -> { gameIndex, playerKey, opponentSocket, timeout, countdownInterval, mode }
 let pendingRematches  = {}; // requesterSocketId -> { requesterSocket, opponentSocket, mode, botDifficulty }
-let opponentMap       = {}; // socketId -> opponentSocket (kept after game ends for gameover interactions)
+let opponentMap       = {}; // socketId -> opponentId (kept after game ends)
+let replaysCol;              // MongoDB collection for replays
 
 function getRanking(socketId) {
     if (!rankings[socketId]) rankings[socketId] = { score: 0, wins: 0, losses: 0 };
@@ -132,6 +133,28 @@ const endGame = async (gameIndex, winnerKey, winType = 'score') => {
     if (winUser)  await usersCol.updateOne({ username: winUser },  { $set: { score: getRanking(winnerSocket.id).score, wins: getRanking(winnerSocket.id).wins } });
     if (loseUser) await usersCol.updateOne({ username: loseUser }, { $set: { score: getRanking(loserSocket.id).score, losses: getRanking(loserSocket.id).losses } });
 
+    // Save replay to MongoDB
+    const p1user = socketToUser[game.player1Socket.id];
+    const p2user = socketToUser[game.player2Socket.id];
+    if (replaysCol && (p1user || p2user)) {
+        const scores = GameService.grid.computeScores(game.gameState.grid);
+        const replayDoc = {
+            idGame:   game.idGame,
+            playedAt: new Date(),
+            mode:     game.mode,
+            winType,
+            winner:   winnerKey,
+            players: {
+                'player:1': { username: p1user?.username || 'Bot', avatar: p1user?.avatar || null, score: scores['player:1'].score },
+                'player:2': { username: p2user?.username || 'Bot', avatar: p2user?.avatar || null, score: scores['player:2'].score }
+            },
+            participantUsernames: [p1user?.username, p2user?.username].filter(Boolean),
+            moves: game.replayMoves,
+            finalGrid: game.gameState.grid
+        };
+        replaysCol.insertOne(replayDoc).catch(() => {});
+    }
+
     await broadcastRanking();
 
     if (!game.isBot || game.player1Socket.id !== game.botSocketId)
@@ -197,6 +220,7 @@ const executeBotTurn = (gameIndex) => {
         game.gameState.deck.dices = dices.map(d => ({ ...d, locked: toKeep.includes(d.id) }));
         updateClientsViewDecks(game);
         updateClientsViewChoices(game);
+        takeSnapshot(game, 'roll');
         setTimeout(isLast ? doChoose : doRoll, afterRollDelay);
     };
 
@@ -223,6 +247,7 @@ const executeBotTurn = (gameIndex) => {
         updateClientsViewChoices(game);
         updateClientsViewDecks(game);
         updateClientsViewGrid(game);
+        takeSnapshot(game, 'choice');
         setTimeout(doPlace, thinkDelay);
     };
 
@@ -240,6 +265,7 @@ const executeBotTurn = (gameIndex) => {
         updateClientsViewDecks(game);
         updateClientsViewChoices(game);
         updateClientsViewGrid(game);
+        takeSnapshot(game, 'place');
         await checkWinner(gameIndex);
     };
 
@@ -259,6 +285,7 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     newGame.ended = false;
     newGame.isPrivate = false;
     newGame.mode = mode || (isBot ? 'bot' : 'online');
+    newGame.replayMoves = []; // { turn, playerKey, type, dices, choiceId, cellId, row, col, grid }
 
     games.push(newGame);
     const gameIndex = GameService.utils.findGameIndexById(games, newGame.idGame);
@@ -314,6 +341,23 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     return games[gameIndex];
 };
 
+// ---- Replay snapshot helper ----
+function takeSnapshot(game, type, extra = {}) {
+    const gs = game.gameState;
+    game.replayMoves.push({
+        type,
+        currentTurn: gs.currentTurn,
+        dices: gs.deck.dices.map(d => ({ id: d.id, value: d.value, locked: d.locked })),
+        rollsCounter: gs.deck.rollsCounter,
+        rollsMax: gs.deck.rollsMaximum,
+        selectedChoice: gs.choices.idSelectedChoice || null,
+        availableChoices: (gs.choices.availableChoices || []).map(c => c.id || c),
+        isDefi: !!gs.choices.isDefi,
+        grid: gs.grid.map(row => row.map(c => ({ id: c.id, owner: c.owner || null }))),
+        ...extra
+    });
+}
+
 // ---- Queue ----
 const newPlayerInQueue = (socket) => {
     queue.push(socket);
@@ -368,6 +412,22 @@ io.on('connection', socket => {
         await broadcastRanking();
     });
 
+    socket.on('user.replays.get', async () => {
+        const user = socketToUser[socket.id];
+        if (!user || !replaysCol) { socket.emit('user.replays.list', []); return; }
+        const list = await replaysCol.find(
+            { participantUsernames: user.username },
+            { projection: { moves: 0 } }
+        ).sort({ playedAt: -1 }).limit(20).toArray();
+        socket.emit('user.replays.list', list);
+    });
+
+    socket.on('replay.get', async ({ idGame }) => {
+        if (!replaysCol) return;
+        const replay = await replaysCol.findOne({ idGame });
+        if (replay) socket.emit('replay.data', replay);
+    });
+
     socket.on('user.ranking.get', async () => {
         const list = await usersCol.find({}, { projection: { password: 0, _id: 0 } }).sort({ score: -1 }).toArray();
         socket.emit('ranking.list', list);
@@ -417,6 +477,7 @@ io.on('connection', socket => {
         const isSec   = games[gameIndex].gameState.deck.rollsCounter === 2;
         const isDefi  = games[gameIndex].gameState.choices.isDefi;
         games[gameIndex].gameState.choices.availableChoices = GameService.choices.findCombinations(dices, isDefi, isSec);
+        takeSnapshot(games[gameIndex], 'roll');
         if (games[gameIndex].gameState.deck.rollsCounter > games[gameIndex].gameState.deck.rollsMaximum) {
             games[gameIndex].gameState.deck.dices = GameService.dices.lockEveryDice(dices);
             if (games[gameIndex].gameState.choices.availableChoices.length === 0) {
@@ -455,6 +516,7 @@ io.on('connection', socket => {
         games[gameIndex].gameState.deck.dices = GameService.choices.lockDicesForChoice(games[gameIndex].gameState.deck.dices, data.choiceId);
         games[gameIndex].gameState.grid = GameService.grid.resetcanBeCheckedCells(games[gameIndex].gameState.grid);
         games[gameIndex].gameState.grid = GameService.grid.updateGridAfterSelectingChoice(data.choiceId, games[gameIndex].gameState.grid);
+        takeSnapshot(games[gameIndex], 'choice');
         updateClientsViewChoices(games[gameIndex]);
         updateClientsViewDecks(games[gameIndex]);
         updateClientsViewGrid(games[gameIndex]);
@@ -465,6 +527,7 @@ io.on('connection', socket => {
         if (gameIndex === -1) return;
         games[gameIndex].gameState.grid = GameService.grid.resetcanBeCheckedCells(games[gameIndex].gameState.grid);
         games[gameIndex].gameState.grid = GameService.grid.selectCell(data.cellId, data.rowIndex, data.cellIndex, games[gameIndex].gameState.currentTurn, games[gameIndex].gameState.grid);
+        takeSnapshot(games[gameIndex], 'place');
         games[gameIndex].gameState.timer = GameService.timer.getEndTurnDuration();
         games[gameIndex].gameState.deck = GameService.init.deck();
         games[gameIndex].gameState.deck.rollsCounter = games[gameIndex].gameState.deck.rollsMaximum + 1;
@@ -658,8 +721,11 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'web-client',
 // ---- Start ----
 MongoClient.connect(MONGO_URL)
     .then(client => {
-        usersCol = client.db('yams_casino').collection('users');
+        usersCol   = client.db('yams_casino').collection('users');
+        replaysCol = client.db('yams_casino').collection('replays');
         usersCol.createIndex({ username: 1 }, { unique: true });
+        replaysCol.createIndex({ players: 1 });
+        replaysCol.createIndex({ playedAt: -1 });
         console.log('[DB] MongoDB connecté');
         http.listen(3000, async () => {
             console.log('[Server] En écoute sur *:3000');
