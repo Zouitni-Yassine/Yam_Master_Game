@@ -217,15 +217,6 @@ Dans la version web, un bouton **QR Code** est disponible en haut à droite. Il 
 
 > Cette étape de confirmation est imposée par localtunnel pour éviter les abus sur les tunnels publics.
 
-### 4. Application mobile (Expo)
-
-```bash
-cd frontend
-npm install
-npm start
-# Scan du QR code Expo pour iOS/Android
-```
-
 ### 5. Build natif iOS / Android (Capacitor)
 
 ```bash
