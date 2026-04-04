@@ -34,7 +34,8 @@ const uniqid = require('uniqid');
 const crypto = require('crypto');
 const { MongoClient } = require('mongodb');
 const GameService = require('./services/game.service');
-const BotService = require('./services/bot.service');
+const BotService  = require('./services/bot.service');
+const MagicService = require('./services/magic.service');
 
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/yams_casino';
 let usersCol;
@@ -77,8 +78,11 @@ const updateClientsViewTimers = (game) => {
 };
 const updateClientsViewDecks = (game) => {
     setTimeout(() => {
-        game.player1Socket.emit('game.deck.view-state', GameService.send.forPlayer.deckViewState('player:1', game.gameState));
-        game.player2Socket.emit('game.deck.view-state', GameService.send.forPlayer.deckViewState('player:2', game.gameState));
+        const uses = game.magicCardUses || {};
+        const p1ds = { ...GameService.send.forPlayer.deckViewState('player:1', game.gameState), magicUsesLeft: uses['player:1'] ?? 2 };
+        const p2ds = { ...GameService.send.forPlayer.deckViewState('player:2', game.gameState), magicUsesLeft: uses['player:2'] ?? 2 };
+        game.player1Socket.emit('game.deck.view-state', p1ds);
+        game.player2Socket.emit('game.deck.view-state', p2ds);
     }, 200);
 };
 const updateClientsViewChoices = (game) => {
@@ -89,8 +93,11 @@ const updateClientsViewChoices = (game) => {
 };
 const updateClientsViewGrid = (game) => {
     setTimeout(() => {
-        game.player1Socket.emit('game.grid.view-state', GameService.send.forPlayer.gridViewState('player:1', game.gameState));
-        game.player2Socket.emit('game.grid.view-state', GameService.send.forPlayer.gridViewState('player:2', game.gameState));
+        const sb  = game.scoreBonus || {};
+        const p1gs = GameService.send.forPlayer.gridViewState('player:1', game.gameState);
+        const p2gs = GameService.send.forPlayer.gridViewState('player:2', game.gameState);
+        game.player1Socket.emit('game.grid.view-state', { ...p1gs, playerScore: p1gs.playerScore + (sb['player:1'] || 0), opponentScore: p1gs.opponentScore + (sb['player:2'] || 0) });
+        game.player2Socket.emit('game.grid.view-state', { ...p2gs, playerScore: p2gs.playerScore + (sb['player:2'] || 0), opponentScore: p2gs.opponentScore + (sb['player:1'] || 0) });
     }, 200);
 };
 
@@ -190,8 +197,10 @@ const checkWinner = async (gameIndex) => {
     let placed = 0;
     game.gameState.grid.forEach(row => row.forEach(cell => { if (cell.owner) placed++; }));
     if (placed >= 24) {
-        const w = scores['player:1'].score >= scores['player:2'].score ? 'player:1' : 'player:2';
-        await endGame(gameIndex, w, 'score');
+        const sb = game.scoreBonus || {};
+        const p1total = scores['player:1'].score + (sb['player:1'] || 0);
+        const p2total = scores['player:2'].score + (sb['player:2'] || 0);
+        await endGame(gameIndex, p1total >= p2total ? 'player:1' : 'player:2', 'score');
     }
 };
 
@@ -285,7 +294,9 @@ const createGame = (player1Socket, player2Socket, isBot = false, botKey = null, 
     newGame.ended = false;
     newGame.isPrivate = false;
     newGame.mode = mode || (isBot ? 'bot' : 'online');
-    newGame.replayMoves = []; // { turn, playerKey, type, dices, choiceId, cellId, row, col, grid }
+    newGame.replayMoves    = [];
+    newGame.magicCardUses  = { 'player:1': 2, 'player:2': 2 };
+    newGame.scoreBonus     = { 'player:1': 0, 'player:2': 0 };
 
     games.push(newGame);
     const gameIndex = GameService.utils.findGameIndexById(games, newGame.idGame);
@@ -507,6 +518,31 @@ io.on('connection', socket => {
         const idx = GameService.utils.findDiceIndexByDiceId(games[gameIndex].gameState.deck.dices, idDice);
         games[gameIndex].gameState.deck.dices[idx].locked = !games[gameIndex].gameState.deck.dices[idx].locked;
         updateClientsViewDecks(games[gameIndex]);
+    });
+
+    socket.on('game.magic.use', async () => {
+        const gameIndex = GameService.utils.findGameIndexBySocketId(games, socket.id);
+        if (gameIndex === -1) return;
+        const game = games[gameIndex];
+        const playerKey = game.player1Socket.id === socket.id ? 'player:1' : 'player:2';
+        if (game.gameState.currentTurn !== playerKey) return;
+        if (game.gameState.deck.rollsCounter !== 1) return;
+        const result = MagicService.apply(game, playerKey);
+        if (!result) return;
+        game.player1Socket.emit('game.magic.result', result);
+        game.player2Socket.emit('game.magic.result', result);
+        // Using the magic card ends the turn immediately
+        game.gameState.currentTurn = playerKey === 'player:1' ? 'player:2' : 'player:1';
+        game.gameState.timer       = GameService.timer.getTurnDuration();
+        game.gameState.deck        = GameService.init.deck();
+        game.gameState.choices     = GameService.init.choices();
+        game.gameState.grid        = GameService.grid.resetcanBeCheckedCells(game.gameState.grid);
+        updateClientsViewTimers(game);
+        updateClientsViewGrid(game);
+        updateClientsViewDecks(game);
+        updateClientsViewChoices(game);
+        await checkWinner(gameIndex);
+        if (game.isBot && !game.ended && game.gameState.currentTurn === game.botKey) executeBotTurn(gameIndex);
     });
 
     socket.on('game.choices.selected', (data) => {

@@ -36,6 +36,7 @@ const SocketClient = (() => {
     let onOpponentLeftGameoverCallback = null;
     let onReplayListCallback = null;
     let onReplayDataCallback = null;
+    let onMagicResultCallback = null;
 
     function connect() {
         socket = io(SERVER_URL, {
@@ -98,6 +99,7 @@ const SocketClient = (() => {
         socket.on('game.opponent.left.gameover',   ()  => { if (onOpponentLeftGameoverCallback)      onOpponentLeftGameoverCallback(); });
         socket.on('user.replays.list',             (d) => { if (onReplayListCallback)                onReplayListCallback(d); });
         socket.on('replay.data',                   (d) => { if (onReplayDataCallback)                onReplayDataCallback(d); });
+        socket.on('game.magic.result',             (d) => { if (onMagicResultCallback)               onMagicResultCallback(d); });
     }
 
     // ---- Emit actions ----
@@ -167,6 +169,8 @@ const SocketClient = (() => {
     function onReplayData(cb)              { onReplayDataCallback = cb; }
     function getReplayList()               { if (socket) socket.emit('user.replays.get'); }
     function getReplay(idGame)             { if (socket) socket.emit('replay.get', { idGame }); }
+    function useMagicCard()               { if (socket) socket.emit('game.magic.use'); }
+    function onMagicResult(cb)            { onMagicResultCallback = cb; }
 
     function getSocket() { return socket; }
 
@@ -185,6 +189,7 @@ const SocketClient = (() => {
         onRematchRequested, onRematchAccepted, onRematchCancelled, onOpponentLeftGameover,
         rematchRequest, rematchDecline, gameoverLeave,
         onReplayList, onReplayData, getReplayList, getReplay,
+        useMagicCard, onMagicResult,
         getSocket
     };
 })();

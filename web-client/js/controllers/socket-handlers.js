@@ -103,7 +103,7 @@ function showDollarGain(text) {
 
 const GameSocketHandlers = {
     setup(state) {
-        SocketClient.onConnect(id => {
+        SocketClient.onConnect(() => {
             UIManager.setConnectionStatus(typeof Settings !== 'undefined' ? Settings.t('connected') : 'Connecté');
             document.getElementById('btn-join-queue').disabled = false;
             document.getElementById('btn-play-friend').disabled = false;
@@ -192,9 +192,17 @@ const GameSocketHandlers = {
                     DiceSystem.updateDiceFromServer(data.dices);
                 }
                 UIManager.setRollButtonState(data.displayRollButton && data.rollsCounter <= data.rollsMaximum, state.hasRolledThisTurn ? 1 : 0);
+                const magicCard = document.getElementById('magic-card');
+                if (magicCard) {
+                    const uses = data.magicUsesLeft ?? 2;
+                    magicCard.classList.toggle('hidden', data.rollsCounter !== 1 || uses <= 0);
+                    const usesEl = document.getElementById('magic-card-uses');
+                    if (usesEl) usesEl.textContent = uses;
+                }
             }
 
             if (data.displayOpponentDeck) {
+                document.getElementById('magic-card')?.classList.add('hidden');
                 DiceSystem.showDice(true);
                 DiceSystem.setPlayerTurn(false);
 
@@ -462,6 +470,26 @@ const GameSocketHandlers = {
             const replayBtn = document.getElementById('game-over-replay');
             if (replayBtn) { replayBtn.textContent = 'REJOUER'; replayBtn.disabled = false; }
         });
+
+        SocketClient.onMagicResult(data => {
+            const _t = typeof Settings !== 'undefined' ? k => Settings.t(k) : k => k;
+            const messages = {
+                remove_own:      _t('magic-effect-remove-own'),
+                remove_opponent: _t('magic-effect-remove-opp'),
+                score_minus:     _t('magic-effect-score-minus'),
+                empty:           _t('magic-effect-empty'),
+            };
+            const overlay  = document.getElementById('magic-result-overlay');
+            const effectEl = document.getElementById('magic-result-effect');
+            if (overlay && effectEl) {
+                effectEl.textContent = messages[data.effect] || data.effect;
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.add('hidden'), 2500);
+            }
+            document.getElementById('magic-card')?.classList.add('hidden');
+        });
+
+        document.getElementById('magic-card')?.addEventListener('click', () => SocketClient.useMagicCard());
 
         SocketClient.onReconnected(data => {
             state.inQueue = false; state.inGame = true;

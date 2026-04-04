@@ -30,11 +30,28 @@
     <!-- Turn glow border -->
     <div id="turn-glow"></div>
 
+    <!-- Magic card (left) -->
+    <div id="magic-card" class="hidden">
+        <div class="magic-card-inner">
+            <img src="/login icons/icon-carte-mystere.svg" class="magic-card-img" alt="Mystère">
+            <div class="magic-card-label">MYSTÈRE</div>
+            <div id="magic-card-uses" class="magic-card-uses">2</div>
+        </div>
+    </div>
+
     <!-- Defi card -->
     <div id="defi-card" class="hidden">
         <div class="defi-card-inner">
             <img src="/logo/joker_defi.svg" class="defi-card-img" alt="Défi">
             <div class="defi-card-label">DÉFI</div>
+        </div>
+    </div>
+
+    <!-- Magic result overlay -->
+    <div id="magic-result-overlay" class="hidden">
+        <div class="magic-result-card">
+            <img src="/login icons/icon-carte-mystere.svg" class="magic-result-icon" alt="">
+            <div id="magic-result-effect" class="magic-result-text"></div>
         </div>
     </div>
 
@@ -461,6 +478,16 @@
                         <section class="rules-section">
                             <h3>🎲 Déroulement d'un tour</h3>
                             <p>À son tour, le joueur lance les <strong>5 dés jusqu'à 3 fois</strong>. Après chaque lancer, il peut écarter des dés et relancer les autres. Il choisit ensuite une combinaison et place un pion sur la case correspondante du plateau.</p>
+                        </section>
+                        <section class="rules-section">
+                            <h3>🃏 La Carte Mystère</h3>
+                            <p>Au début de chaque tour, une carte apparaît à <strong>gauche</strong>. Max <strong>2 utilisations</strong> par partie. Prendre la carte termine votre tour immédiatement. Effet aléatoire :</p>
+                            <div class="rules-combos" style="margin-top:8px">
+                                <div class="rules-combo"><span class="combo-name">🗑️ Retrait (vous)</span><span class="combo-desc">Un de vos jetons retiré de la grille</span></div>
+                                <div class="rules-combo"><span class="combo-name">💥 Retrait (adversaire)</span><span class="combo-desc">Un jeton adverse retiré de la grille</span></div>
+                                <div class="rules-combo"><span class="combo-name">📉 −1 point</span><span class="combo-desc">Vous ou l'adversaire (aléatoire)</span></div>
+                                <div class="rules-combo"><span class="combo-name">🃏 Carte vide</span><span class="combo-desc">Rien ne se passe</span></div>
+                            </div>
                         </section>
                         <section class="rules-section">
                             <h3>📊 Alignements sur le plateau</h3>

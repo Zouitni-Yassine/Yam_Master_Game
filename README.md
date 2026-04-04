@@ -83,6 +83,11 @@ Le dossier `backend/` a été développé en collaboration avec le prof dans le 
 - **Grille de placement** : grille 4×6, le joueur place sa combinaison choisie sur une case
 - **Condition de victoire** : 5 cases alignées (ligne, colonne ou diagonale) OU grille remplie (score le plus haut)
 - **Déclaration de Défi** : avant le 2ᵉ lancé, le joueur peut cliquer sur la **carte Défi** (affichée à droite de la table). Si la combinaison obtenue n'est pas un Brelan, les gains sont bonifiés. C'est un pari risqué mais récompensé — la carte apparaît avec une animation et reste visible pendant toute la durée du choix
+- **Carte Mystère** : au début de chaque tour, avant le 1er lancé, une **carte Mystère** apparaît à gauche de la table. Le joueur peut soit lancer les dés (la carte disparaît), soit prendre la carte (le tour se termine immédiatement). Maximum **2 utilisations par partie**. L'effet est tiré au hasard parmi 4 possibilités :
+  - 🗑️ **Retrait de votre propre jeton** : un de vos jetons est retiré de la grille
+  - 💥 **Retrait du jeton adverse** : un jeton de l'adversaire est retiré de la grille
+  - 📉 **−1 point** : vous ou l'adversaire (aléatoire) perd 1 point
+  - 🃏 **Carte vide** : rien ne se passe
 
 ### Modes de jeu
 
