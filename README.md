@@ -224,6 +224,60 @@ npx cap open android  # Ouvre Android Studio
 
 ---
 
+## Tests unitaires
+
+Les services backend sont couverts par **123 tests unitaires** avec Jest.
+
+### Lancer les tests
+
+```bash
+cd backend
+npm test                # tous les tests
+npm run test:coverage   # avec rapport de couverture
+npm run test:watch      # mode watch pendant le développement
+```
+
+### Couverture
+
+| Fichier | Instructions | Branches | Fonctions | Lignes |
+|---|---|---|---|---|
+| `bot.service.js` | 100 % | 100 % | 100 % | 100 % |
+| `game.service.js` | 99.47 % | 95.14 % | 98.11 % | 99.27 % |
+| **Total** | **99.65 %** | **96.89 %** | **98.68 %** | **99.48 %** |
+
+### Architecture des tests
+
+```
+backend/tests/
+├── helpers/
+│   └── fixtures.js               ← factories partagées (dés, grilles, jeux simulés)
+└── __tests__/
+    ├── game-service/
+    │   ├── init.test.js           ← initialisation de l'état de jeu, deck, grille, choices
+    │   ├── timer.test.js          ← durées de tour
+    │   ├── dices.test.js          ← lancer et verrouillage des dés
+    │   ├── utils.test.js          ← recherche par ID, socket, index de dé
+    │   ├── grid.test.js           ← sélection de cases, calcul des scores, détection victoire
+    │   ├── choices.test.js        ← détection des combinaisons, verrouillage des dés par combo
+    │   └── send.test.js           ← états de vue envoyés aux joueurs (timer, deck, choix, grille)
+    └── bot-service/
+        ├── decideLock.test.js     ← stratégie de verrouillage par difficulté (easy/medium/hard)
+        ├── decideChoice.test.js   ← choix de la combinaison optimale
+        ├── decideCell.test.js     ← choix de la case optimale sur la grille
+        └── scoreCell.test.js      ← algorithme de scoring (gain×2 + blocage×1.5, victoire=1000)
+```
+
+### Ce que les tests couvrent
+
+- **Immutabilité** : chaque fonction retourne de nouveaux objets sans modifier les originaux
+- **Cas nominaux** : Brelan, Full, Carré, Yam, Suite, ≤8, Sec, Défi — toutes les combinaisons
+- **Cas limites** : tableau vide, dés non lancés, grille pleine, socket inexistant, jeu terminé
+- **IA bot** : les trois niveaux de difficulté (easy/medium/hard), préférence pour la victoire immédiate, blocage adverse
+- **Scoring** : alignements horizontaux, verticaux et diagonaux, 3→1pt, 4→2pts, 5→victoire
+- **Jeux terminés** : `findGameIndexBySocketId` ignore les jeux avec `ended = true`
+
+---
+
 ## Events Socket.io (résumé)
 
 | Direction        | Event                         | Description                                |

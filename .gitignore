@@ -1,7 +1,7 @@
 node_modules/
 .expo/
 dist/
-.env
 *.log
 mobile/android/
 .vscode/
+backend/coverage/
