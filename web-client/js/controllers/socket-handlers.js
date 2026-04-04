@@ -124,6 +124,7 @@ const GameSocketHandlers = {
         SocketClient.onGameStart(data => {
             state.inQueue = false; state.inGame = true;
             state.idPlayer = data.idPlayer; state.idOpponent = data.idOpponent;
+            state.playerKey = data.playerKey;
             state.opponentRollsCounter = 0;
             state.opponentInitialized  = false;
             state.gameMode = data.mode || 'online';
@@ -258,7 +259,7 @@ const GameSocketHandlers = {
                 state.previousPlayerScore = data.playerScore;
             }
             if (data.winner) {
-                const isWinner = data.winner === state.idPlayer;
+                const isWinner = data.winner === state.playerKey;
                 const glow = document.getElementById('turn-glow');
                 if (glow) { glow.classList.remove('my-turn', 'opponent-turn'); }
 
@@ -497,6 +498,7 @@ const GameSocketHandlers = {
         SocketClient.onReconnected(data => {
             state.inQueue = false; state.inGame = true;
             state.idPlayer = data.idPlayer; state.idOpponent = data.idOpponent;
+            state.playerKey = data.playerKey;
             state.opponentRollsCounter = 0;
             state.opponentInitialized  = false;
             const isPlayer1 = data.playerKey === 'player:1';

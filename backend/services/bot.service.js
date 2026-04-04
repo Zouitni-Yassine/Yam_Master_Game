@@ -483,16 +483,26 @@ const BotService = {
             if (cell.owner === humanKey) humanTokens++;
         }));
 
-        // Too early — not enough tokens
-        if (botTokens + humanTokens < 5) return false;
+        // Too early — wait for at least 3 tokens on the board
+        if (botTokens + humanTokens < 3) return false;
 
         const botScore  = scores[botKey].score;
         const humanScore = scores[humanKey].score;
 
-        // Opponent has 4 aligned (2+ pts) — critical threat
+        // Opponent has 4 aligned (2+ pts) — critical threat, must disrupt
         if (humanScore >= 2) return true;
-        // Bot behind AND opponent has more tokens
-        if (humanScore > botScore && humanTokens > botTokens) return true;
+
+        // Opponent has 3 aligned (1+ pts) — use card to try to break it
+        if (humanScore >= 1 && humanTokens >= 3) return true;
+
+        // Bot is behind in score
+        if (humanScore > botScore) return true;
+
+        // Opponent has more tokens — try to remove one
+        if (humanTokens > botTokens && humanTokens >= 3) return true;
+
+        // Mid-game: use card proactively if opponent is building up
+        if (humanTokens >= 4 && botTokens <= humanTokens) return true;
 
         return false;
     },
