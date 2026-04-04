@@ -18,7 +18,8 @@ Le dossier `backend/` a été développé en collaboration avec le prof dans le 
 │   ├── .env                    # Variables d'environnement (URL MongoDB)
 │   └── services/
 │       ├── game.service.js     # Logique de jeu (dés, grille, combinaisons, score)
-│       └── bot.service.js      # IA bot (facile / moyen / difficile)
+│       ├── bot.service.js      # IA bot (facile / moyen / difficile) avec stratégie avancée
+│       └── magic.service.js    # Logique de la Carte Mystère (effets aléatoires)
 │
 ├── web-client/                 # Client web 3D (Three.js, vanilla JS)
 │   ├── index.html              # Page principale (UI complète)
@@ -80,7 +81,7 @@ Le dossier `backend/` a été développé en collaboration avec le prof dans le 
 - **Tour par tour** : 30 secondes par tour, chaque joueur lance jusqu'à 3 fois ses 5 dés
 - **Verrouillage de dés** : le joueur peut verrouiller/déverrouiller des dés entre les lancés
 - **Combinaisons** : Brelan 1–6, Full, Carré, Yam, Suite, ≤8, Sec, Défi
-- **Grille de placement** : grille 4×6, le joueur place sa combinaison choisie sur une case
+- **Grille de placement** : grille 5×5, le joueur place sa combinaison choisie sur une case
 - **Condition de victoire** : 5 cases alignées (ligne, colonne ou diagonale) OU grille remplie (score le plus haut)
 - **Déclaration de Défi** : avant le 2ᵉ lancé, le joueur peut cliquer sur la **carte Défi** (affichée à droite de la table). Si la combinaison obtenue n'est pas un Brelan, les gains sont bonifiés. C'est un pari risqué mais récompensé — la carte apparaît avec une animation et reste visible pendant toute la durée du choix
 - **Carte Mystère** : au début de chaque tour, avant le 1er lancé, une **carte Mystère** apparaît à gauche de la table. Le joueur peut soit lancer les dés (la carte disparaît), soit prendre la carte (le tour se termine immédiatement). Maximum **2 utilisations par partie**. L'effet est tiré au hasard parmi 4 possibilités :
@@ -92,6 +93,9 @@ Le dossier `backend/` a été développé en collaboration avec le prof dans le 
 ### Modes de jeu
 
 - **vs Bot** : 3 niveaux de difficulté (facile / moyen / difficile), l'IA joue automatiquement
+  - **Facile** : choix aléatoires, pas de verrouillage de dés
+  - **Moyen** : verrouillage basique (paire / suite), scoring simple
+  - **Difficile** : IA avancée grid-aware — détection de forks (menaces doubles), verrouillage stratégique selon les positions disponibles sur la grille, arrêt anticipé si le résultat est déjà optimal, déclaration de défi automatique, utilisation intelligente de la Carte Mystère, blocage proactif de l'adversaire
 - **En ligne** : file d'attente matchmaking automatique
 - **Partie privée (Ami)** : création d'une salle avec code à partager, rejoindre via code
 
@@ -277,7 +281,7 @@ backend/tests/
 - **Immutabilité** : chaque fonction retourne de nouveaux objets sans modifier les originaux
 - **Cas nominaux** : Brelan, Full, Carré, Yam, Suite, ≤8, Sec, Défi — toutes les combinaisons
 - **Cas limites** : tableau vide, dés non lancés, grille pleine, socket inexistant, jeu terminé
-- **IA bot** : les trois niveaux de difficulté (easy/medium/hard), préférence pour la victoire immédiate, blocage adverse
+- **IA bot** : les trois niveaux de difficulté (easy/medium/hard), préférence pour la victoire immédiate, blocage adverse, détection de forks, verrouillage grid-aware, arrêt anticipé, défi automatique, carte mystère stratégique
 - **Scoring** : alignements horizontaux, verticaux et diagonaux, 3→1pt, 4→2pts, 5→victoire
 - **Jeux terminés** : `findGameIndexBySocketId` ignore les jeux avec `ended = true`
 
@@ -301,6 +305,7 @@ backend/tests/
 | Client → Serveur | `game.rematch.request`        | Demander un rematch                        |
 | Client → Serveur | `game.gameover.leave`         | Quitter l'écran fin de partie              |
 | Client → Serveur | `user.replays.get`            | Récupérer ses replays                      |
+| Client → Serveur | `game.magic.use`              | Utiliser la Carte Mystère                  |
 | Client → Serveur | `replay.get`                  | Charger un replay spécifique               |
 | Serveur → Client | `game.start`                  | Début de partie (mode, difficulté, idGame) |
 | Serveur → Client | `game.deck.view-state`        | État des dés                               |
@@ -316,4 +321,5 @@ backend/tests/
 | Serveur → Client | `game.opponent.left.gameover` | L'adversaire a quitté                      |
 | Serveur → Client | `ranking.update`              | Mise à jour du classement                  |
 | Serveur → Client | `user.replays.list`           | Liste des replays                          |
+| Serveur → Client | `game.magic.result`           | Résultat de la Carte Mystère (effet tiré)  |
 | Serveur → Client | `replay.data`                 | Données d'un replay complet                |
