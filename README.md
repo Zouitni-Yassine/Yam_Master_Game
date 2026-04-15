@@ -15,7 +15,7 @@ Le dossier `backend/` a été développé en collaboration avec le prof dans le 
 ```
 ├── backend/                    # Serveur Node.js (Socket.io + MongoDB)
 │   ├── index.js                # Point d'entrée principal (socket events, logique de jeu)
-│   ├── .env                    # Variables d'environnement (URL MongoDB)
+│   ├── .env.example            # Exemple de variables d'environnement (a copier en .env)
 │   └── services/
 │       ├── game.service.js     # Logique de jeu (dés, grille, combinaisons, score)
 │       ├── bot.service.js      # IA bot (facile / moyen / difficile) avec stratégie avancée
@@ -196,7 +196,17 @@ Au démarrage, le terminal affiche :
 - `Mobile public` → URL publique générée automatiquement par **localtunnel**, utilisée pour la version mobile via QR code
 - Chaque nouvelle connexion socket affiche son ID en console
 
-Le fichier `backend/.env` doit contenir :
+Avant de lancer le backend, crée le fichier local `backend/.env` depuis l'exemple versionné :
+
+```bash
+# Linux/macOS
+cp backend/.env.example backend/.env
+
+# Windows PowerShell
+Copy-Item backend/.env.example backend/.env
+```
+
+Puis ajoute ta valeur MongoDB dans `backend/.env` :
 
 ```
 MONGO_URL=mongodb+srv://...
@@ -248,11 +258,11 @@ npm run test:watch      # mode watch pendant le développement
 
 ### Couverture
 
-| Fichier | Instructions | Branches | Fonctions | Lignes |
-|---|---|---|---|---|
-| `bot.service.js` | 100 % | 100 % | 100 % | 100 % |
-| `game.service.js` | 99.47 % | 95.14 % | 98.11 % | 99.27 % |
-| **Total** | **99.65 %** | **96.89 %** | **98.68 %** | **99.48 %** |
+| Fichier           | Instructions | Branches    | Fonctions   | Lignes      |
+| ----------------- | ------------ | ----------- | ----------- | ----------- |
+| `bot.service.js`  | 100 %        | 100 %       | 100 %       | 100 %       |
+| `game.service.js` | 99.47 %      | 95.14 %     | 98.11 %     | 99.27 %     |
+| **Total**         | **99.65 %**  | **96.89 %** | **98.68 %** | **99.48 %** |
 
 ### Architecture des tests
 

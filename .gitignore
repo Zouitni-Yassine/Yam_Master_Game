@@ -5,3 +5,11 @@ dist/
 mobile/android/
 .vscode/
 backend/coverage/
+
+# Local environment files (secrets)
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
